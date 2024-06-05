@@ -36,6 +36,6 @@ class AddStockForm(forms.ModelForm):
         labels = {
             'sembol': 'Sembol',
             'isim': 'İsim',
-
         }
+
 

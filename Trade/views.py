@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
 from Trade.forms import StockForm, AddStockForm
 from Trade.models import Hisse
 import yfinance as yf
@@ -53,6 +52,7 @@ def index(request):
             'longBusinessSummary': info.get('longBusinessSummary', 'N/A'),
         }
         summary_data = {
+            'name': info.get('longName', 'N/A'),
             'currentPrice': info.get('currentPrice', 'N/A'),
             'targetHighPrice': info.get('targetHighPrice', 'N/A'),
             'targetLowPrice': info.get('targetLowPrice', 'N/A'),

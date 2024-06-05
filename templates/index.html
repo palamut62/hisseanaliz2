@@ -8,10 +8,11 @@
     <title>Hisse Senedi Verileri</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inconsolata', monospace;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
+            font-size: 14px;
         }
 
         .container {
@@ -63,15 +64,21 @@
 
         table, th, td {
             border: 1px solid #ddd;
+
         }
 
         th, td {
             padding: 12px;
             text-align: left;
+
         }
 
         th {
             background-color: #f2f2f2;
+        }
+
+        table tr, table td {
+            height: 8px; /* İstediğiniz yüksekliği buraya yazın */
         }
 
         .floating-button {
@@ -128,12 +135,13 @@
         }
 
         .modal-content {
+            font-family: ;
             background-color: #fff;
-            margin: 15% auto;
-            padding: 20px;
+            margin: 10% auto;
+            padding: 15px;
             border: 1px solid #888;
             width: 80%;
-            max-width: 500px;
+            max-width: 300px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
         }
@@ -149,6 +157,34 @@
         .close-button:focus {
             color: black;
             text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content form label {
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .modal-content form input,
+        .modal-content form button {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+
+        .modal-content form button {
+            width: auto;
+            align-self: flex-end;
+            background-color: #ff6600;
+            color: white;
+            border: none;
             cursor: pointer;
         }
     </style>
@@ -379,13 +415,13 @@
         document.getElementById('modalForm').style.display = 'none';
     }
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const modal = document.getElementById('modalForm');
         if (event.target === modal) {
             modal.style.display = 'none';
         }
     }
-    
+
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('id_symbol').addEventListener('change', function () {
             this.form.submit();
