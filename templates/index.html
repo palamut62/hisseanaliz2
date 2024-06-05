@@ -1,0 +1,396 @@
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hisse Senedi Verileri</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .form-container div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-container label {
+            margin-bottom: 5px;
+        }
+
+        .form-container select,
+        .form-container input,
+        .form-container button {
+            padding: 10px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .form-container button {
+            width: auto;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-menu {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .floating-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .floating-menu a:hover {
+            background-color: #f2f2f2;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <form method="post" class="form-container" id="stockForm">
+        {% csrf_token %}
+        <div>
+            {{ form.symbol.label_tag }}
+            {{ form.symbol }}
+        </div>
+        <div>
+            {{ form.start_date.label_tag }}
+            {{ form.start_date }}
+        </div>
+        <div>
+            {{ form.end_date.label_tag }}
+            {{ form.end_date }}
+        </div>
+        <button type="submit">Getir</button>
+    </form>
+    {% if hisse_bilgisi %}
+        <div id="HisseBilgileri" class="tabcontent">
+            <h3>{{ summary_data.name|title }} Bilgileri</h3>
+            <table class="hisse-bilgileri">
+                <tr>
+                    <th>Bilgi</th>
+                    <th>Değer</th>
+                    <th>Bilgi</th>
+                    <th>Değer</th>
+                    <th>Bilgi</th>
+                    <th>Değer</th>
+                </tr>
+                <tr>
+                    <td>Sembol</td>
+                    <td>{{ hisse_bilgisi.sembol }}</td>
+                    <td>İsim</td>
+                    <td>{{ hisse_bilgisi.isim }}</td>
+                    <td>Sektör</td>
+                    <td>{{ hisse_bilgisi.sektor }}</td>
+                </tr>
+                <tr>
+                    <td>Fiyat</td>
+                    <td>{{ hisse_bilgisi.fiyat|floatformat:2 }}</td>
+                    <td>Piyasa Değeri</td>
+                    <td>{{ hisse_bilgisi.piyasa_degeri|intcomma }}</td>
+                    <td>F/K Oranı</td>
+                    <td>{{ hisse_bilgisi.fk_orani|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>EPS</td>
+                    <td>{{ hisse_bilgisi.eps|floatformat:2 }}</td>
+                    <td>Özsermaye</td>
+                    <td>{{ hisse_bilgisi.ozsermaye|intcomma }}</td>
+                    <td>Net Gelir</td>
+                    <td>{{ hisse_bilgisi.net_gelir|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td>Toplam Varlıklar</td>
+                    <td>{{ hisse_bilgisi.toplam_varliklar|intcomma }}</td>
+                    <td>Toplam Borçlar</td>
+                    <td>{{ hisse_bilgisi.toplam_borclar|intcomma }}</td>
+                    <td>Adres 1</td>
+                    <td>{{ hisse_bilgisi.address1 }}</td>
+                </tr>
+                <tr>
+                    <td>Adres 2</td>
+                    <td>{{ hisse_bilgisi.address2 }}</td>
+                    <td>Şehir</td>
+                    <td>{{ hisse_bilgisi.city }}</td>
+                    <td>Posta Kodu</td>
+                    <td>{{ hisse_bilgisi.zip }}</td>
+                </tr>
+                <tr>
+                    <td>Ülke</td>
+                    <td>{{ hisse_bilgisi.country }}</td>
+                    <td>Telefon</td>
+                    <td>{{ hisse_bilgisi.phone }}</td>
+                    <td>Faks</td>
+                    <td>{{ hisse_bilgisi.fax }}</td>
+                </tr>
+                <tr>
+                    <td>Web Sitesi</td>
+                    <td><a href="{{ hisse_bilgisi.website }}" target="_blank">{{ hisse_bilgisi.website }}</a></td>
+                    <td>Endüstri</td>
+                    <td>{{ hisse_bilgisi.industry }}</td>
+                    <td>Çalışan Sayısı</td>
+                    <td>{{ hisse_bilgisi.fullTimeEmployees|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td colspan="6">İş Tanımı: {{ hisse_bilgisi.longBusinessSummary }}</td>
+                </tr>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if summary_data %}
+        <div id="HisseTemelAnalizi" class="tabcontent">
+            <h3>{{ summary_data.name|title }} Analiz</h3>
+            <table class="hisse-bilgileri">
+                <thead>
+                <tr>
+                    <th>Bilgi</th>
+                    <th>Değer</th>
+                    <th>Bilgi</th>
+                    <th>Değer</th>
+                    <th>Bilgi</th>
+                    <th>Değer</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Mevcut Fiyat</td>
+                    <td>{{ summary_data.currentPrice|floatformat:2 }}</td>
+                    <td>Hedef Yüksek Fiyat</td>
+                    <td>{{ summary_data.targetHighPrice|floatformat:2 }}</td>
+                    <td>Hedef Düşük Fiyat</td>
+                    <td>{{ summary_data.targetLowPrice|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Hedef Ortalama Fiyat</td>
+                    <td>{{ summary_data.targetMeanPrice|floatformat:2 }}</td>
+                    <td>Hedef Medyan Fiyat</td>
+                    <td>{{ summary_data.targetMedianPrice|floatformat:2 }}</td>
+                    <td>Analist Tavsiye Ortalaması</td>
+                    <td>{{ summary_data.recommendationMean|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Analist Tavsiye Anahtarı</td>
+                    <td>{{ summary_data.recommendationKey }}</td>
+                    <td>Analist Görüş Sayısı</td>
+                    <td>{{ summary_data.numberOfAnalystOpinions|intcomma }}</td>
+                    <td>Toplam Nakit</td>
+                    <td>{{ summary_data.totalCash|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td>Hisse Başına Nakit</td>
+                    <td>{{ summary_data.totalCashPerShare|floatformat:2 }}</td>
+                    <td>EBITDA</td>
+                    <td>{{ summary_data.ebitda|intcomma }}</td>
+                    <td>Toplam Borç</td>
+                    <td>{{ summary_data.totalDebt|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td>Likidite Oranı</td>
+                    <td>{{ summary_data.quickRatio|floatformat:2 }}</td>
+                    <td>Mevcut Oran</td>
+                    <td>{{ summary_data.currentRatio|floatformat:2 }}</td>
+                    <td>Toplam Gelir</td>
+                    <td>{{ summary_data.totalRevenue|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td>Borç/Özsermaye Oranı</td>
+                    <td>{{ summary_data.debtToEquity|floatformat:2 }}</td>
+                    <td>Hisse Başına Gelir</td>
+                    <td>{{ summary_data.revenuePerShare|floatformat:2 }}</td>
+                    <td>Varlık Karlılığı</td>
+                    <td>{{ summary_data.returnOnAssets|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Özsermaye Karlılığı</td>
+                    <td>{{ summary_data.returnOnEquity|floatformat:2 }}</td>
+                    <td>Serbest Nakit Akışı</td>
+                    <td>{{ summary_data.freeCashflow|intcomma }}</td>
+                    <td>Operasyonel Nakit Akışı</td>
+                    <td>{{ summary_data.operatingCashflow|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td>Kazanç Büyümesi</td>
+                    <td>{{ summary_data.earningsGrowth|floatformat:2 }}</td>
+                    <td>Gelir Büyümesi</td>
+                    <td>{{ summary_data.revenueGrowth|floatformat:2 }}</td>
+                    <td>Brüt Marj</td>
+                    <td>{{ summary_data.grossMargins|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>EBITDA Marj</td>
+                    <td>{{ summary_data.ebitdaMargins|floatformat:2 }}</td>
+                    <td>İşletme Marj</td>
+                    <td>{{ summary_data.operatingMargins|floatformat:2 }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+<button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
+<div class="floating-menu" id="floatingMenu">
+    <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>
+    <a href="#"><i class="fas fa-table"></i> Hisse Tablosu</a>
+    <a href="#"><i class="fas fa-chart-line"></i> Analiz Yap</a>
+</div>
+
+<!-- Modal Form -->
+<div id="modalForm" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h2>Hisse Ekle</h2>
+        <form method="post" action="{% url 'index' %}" id="addStockForm">
+            {% csrf_token %}
+            {{ add_stock_form.as_p }}
+            <button type="submit">Kaydet</button>
+        </form>
+    </div>
+</div>
+
+<!-- Font Awesome CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<script>
+    function toggleMenu() {
+        const menu = document.getElementById('floatingMenu');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    function openModal() {
+        document.getElementById('modalForm').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('modalForm').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('modalForm');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('id_symbol').addEventListener('change', function () {
+            this.form.submit();
+        });
+    });
+</script>
+</body>
+</html>
