@@ -10,19 +10,18 @@ def index(request):
     hisse_bilgisi = None
     selected_stock = None
 
+    form = StockForm(request.POST or None)
+    add_stock_form = AddStockForm(request.POST or None)
+
     if request.method == 'POST':
         if 'symbol' in request.POST:
-            form = StockForm(request.POST)
             if form.is_valid():
                 selected_stock = form.cleaned_data['symbol']
         else:
-            add_stock_form = AddStockForm(request.POST)
             if add_stock_form.is_valid():
                 add_stock_form.save()
                 return redirect('index')  # Form başarıyla gönderildikten sonra sayfayı yeniler
     else:
-        form = StockForm()
-        add_stock_form = AddStockForm()
         if stocks:
             selected_stock = stocks.first().sembol
 
