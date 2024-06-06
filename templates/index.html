@@ -1,11 +1,13 @@
 {% load humanize %}
-
+{%  load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisse Senedi Verileri</title>
+    <title>{{ summary_data.name|title }}</title>
+    <link rel="icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
+ 
     <style>
         body {
             font-family: 'Inconsolata', monospace;
@@ -35,16 +37,14 @@
             flex-direction: column;
         }
 
-        .form-container label {
-            margin-bottom: 5px;
-        }
+        
 
         .form-container select,
         .form-container input,
         .form-container button {
             padding: 10px;
             margin-right: 10px;
-            margin-bottom: 10px;
+    
             width: 100%;
         }
 
@@ -78,7 +78,7 @@
         }
 
         table tr, table td {
-            height: 8px; /* İstediğiniz yüksekliği buraya yazın */
+            height: 7px; /* İstediğiniz yüksekliği buraya yazın */
         }
 
         .floating-button {
@@ -211,80 +211,55 @@
         <div id="HisseBilgileri" class="tabcontent">
             <h3>{{ summary_data.name|title }} Bilgileri</h3>
             <table class="hisse-bilgileri">
-                <tr>
-                    <th>Bilgi</th>
-                    <th>Değer</th>
-                    <th>Bilgi</th>
-                    <th>Değer</th>
-                    <th>Bilgi</th>
-                    <th>Değer</th>
-                </tr>
-                <tr>
-                    <td>Sembol</td>
-                    <td>{{ hisse_bilgisi.sembol }}</td>
-                    <td>İsim</td>
-                    <td>{{ hisse_bilgisi.isim }}</td>
-                    <td>Sektör</td>
-                    <td>{{ hisse_bilgisi.sektor }}</td>
-                </tr>
-                <tr>
-                    <td>Fiyat</td>
-                    <td>{{ hisse_bilgisi.fiyat|floatformat:2 }}</td>
-                    <td>Piyasa Değeri</td>
-                    <td>{{ hisse_bilgisi.piyasa_degeri|intcomma }}</td>
-                    <td>F/K Oranı</td>
-                    <td>{{ hisse_bilgisi.fk_orani|floatformat:2 }}</td>
-                </tr>
-                <tr>
-                    <td>EPS</td>
-                    <td>{{ hisse_bilgisi.eps|floatformat:2 }}</td>
-                    <td>Özsermaye</td>
-                    <td>{{ hisse_bilgisi.ozsermaye|intcomma }}</td>
-                    <td>Net Gelir</td>
-                    <td>{{ hisse_bilgisi.net_gelir|intcomma }}</td>
-                </tr>
-                <tr>
-                    <td>Toplam Varlıklar</td>
-                    <td>{{ hisse_bilgisi.toplam_varliklar|intcomma }}</td>
-                    <td>Toplam Borçlar</td>
-                    <td>{{ hisse_bilgisi.toplam_borclar|intcomma }}</td>
-                    <td>Adres 1</td>
-                    <td>{{ hisse_bilgisi.address1 }}</td>
-                </tr>
-                <tr>
-                    <td>Adres 2</td>
-                    <td>{{ hisse_bilgisi.address2 }}</td>
-                    <td>Şehir</td>
-                    <td>{{ hisse_bilgisi.city }}</td>
-                    <td>Posta Kodu</td>
-                    <td>{{ hisse_bilgisi.zip }}</td>
-                </tr>
-                <tr>
-                    <td>Ülke</td>
-                    <td>{{ hisse_bilgisi.country }}</td>
-                    <td>Telefon</td>
-                    <td>{{ hisse_bilgisi.phone }}</td>
-                    <td>Faks</td>
-                    <td>{{ hisse_bilgisi.fax }}</td>
-                </tr>
-                <tr>
-                    <td>Web Sitesi</td>
-                    <td><a href="{{ hisse_bilgisi.website }}" target="_blank">{{ hisse_bilgisi.website }}</a></td>
-                    <td>Endüstri</td>
-                    <td>{{ hisse_bilgisi.industry }}</td>
-                    <td>Çalışan Sayısı</td>
-                    <td>{{ hisse_bilgisi.fullTimeEmployees|intcomma }}</td>
-                </tr>
-                <tr>
-                    <td colspan="6">İş Tanımı: {{ hisse_bilgisi.longBusinessSummary }}</td>
-                </tr>
-            </table>
+    <tr>
+        <th>Bilgi</th>
+        <th>Değer</th>
+        <th>Bilgi</th>
+        <th>Değer</th>
+        <th>Bilgi</th>
+        <th>Değer</th>
+    </tr>
+    <tr>
+        <td>Sembol</td>
+        <td>{{ hisse_bilgisi.sembol }}</td>
+        <td>İsim</td>
+        <td>{{ hisse_bilgisi.isim }}</td>
+        <td>Sektör</td>
+        <td>{{ hisse_bilgisi.sektor }}</td>
+    </tr>
+    <tr>
+        <td>Fiyat</td>
+        <td>{{ hisse_bilgisi.fiyat|floatformat:2 }}</td>
+        <td>Piyasa Değeri</td>
+        <td>{{ hisse_bilgisi.piyasa_degeri|intcomma }}</td>
+        <td>F/K Oranı</td>
+        <td>{{ hisse_bilgisi.fk_orani|floatformat:2 }}</td>
+    </tr>
+    <tr>
+        <td>EPS</td>
+        <td>{{ hisse_bilgisi.eps|floatformat:2 }}</td>
+        <td>Özsermaye</td>
+        <td>{{ hisse_bilgisi.ozsermaye|intcomma }}</td>
+        <td>Net Gelir</td>
+        <td>{{ hisse_bilgisi.net_gelir|intcomma }}</td>
+    </tr>
+    <tr>
+        <td>Toplam Varlıklar</td>
+        <td>{{ hisse_bilgisi.toplam_varliklar|intcomma }}</td>
+        <td>Toplam Borçlar</td>
+        <td>{{ hisse_bilgisi.toplam_borclar|intcomma }}</td>
+        <td>Çalışan Sayısı</td>
+        <td>{{ hisse_bilgisi.fullTimeEmployees|intcomma }}</td>
+    </tr>
+   
+</table>
+
         </div>
     {% endif %}
 
     {% if summary_data %}
         <div id="HisseTemelAnalizi" class="tabcontent">
-            <h3>{{ summary_data.name|title }} Analiz</h3>
+            <h3>{{ summary_data.name|title }} Temel Analiz</h3>
             <table class="hisse-bilgileri">
                 <thead>
                 <tr>
