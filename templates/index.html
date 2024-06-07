@@ -347,7 +347,7 @@
 <div class="floating-menu" id="floatingMenu">
     <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>
     <a href="#"><i class="fas fa-table"></i> Hisse Tablosu</a>
-    <a href="#" onclick="openModalA()"><i class="fas fa-chart-line"></i> Analiz Yap</a>
+    <a href="#" onclick="fetchAnalysis()"><i class="fas fa-chart-line"></i> Analiz Yap</a>
 </div>
 
 <!-- Modal Form -->
@@ -365,15 +365,11 @@
 
 <!-- Analiz Modal Form -->
 <div id="modalFormA" class="modal">
-    <div class="modal-content-analyze">
+    <div class="modal-content-analyze" id="modalContentA">
         <span class="close-button" onclick="closeModalA()">&times;</span>
-        {% if summary_data %}
-            <h2>{{ summary_data.name }} Yapay Zeka Analizi</h2>
-        {% endif %}
-        {% if google_gemini_degerlendirme %}
-            {{ google_gemini_degerlendirme | safe }}
-        {% endif %}
-
+        <h2>Analiz Yap</h2>
+        <div id="loading">Loading...</div>
+        <div id="analysisResult" style="display:none;"></div>
     </div>
 </div>
 
@@ -406,6 +402,35 @@
         document.getElementById('modalFormA').style.display = 'none';
     }
 
+    function decodeHTMLEntities(text) {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+    }
+
+    function fetchAnalysis() {
+        const loading = document.getElementById('loading');
+        const analysisResult = document.getElementById('analysisResult');
+
+        loading.style.display = 'block';
+        analysisResult.style.display = 'none';
+
+        openModalA();
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '{% url "fetch_analysis" %}', true);
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                const decodedAnalysis = decodeHTMLEntities(response.analysis);
+                analysisResult.innerHTML = decodedAnalysis.replace(/\n/g, '<br>');
+                loading.style.display = 'none';
+                analysisResult.style.display = 'block';
+            }
+        };
+        xhr.send();
+    }
+
     window.onclick = function (event) {
         const modal = document.getElementById('modalForm');
         const modalA = document.getElementById('modalFormA');
@@ -422,14 +447,6 @@
             this.form.submit();
         });
     });
-    {#// Menü dışında bir yere tıklanınca menüyü kapatma#}
-    {#window.onclick = function (event) {#}
-    {#    const menu = document.getElementById('floatingMenu');#}
-    {#    if (event.target !== menu && !menu.contains(event.target)) {#}
-    {#        menu.style.display = 'none';#}
-    {#    }#}
-    {#};#}
-
 </script>
 </body>
 </html>

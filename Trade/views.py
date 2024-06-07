@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from Trade.forms import StockForm, AddStockForm
 from Trade.models import Hisse
 import yfinance as yf
-
 from utils import hisse_bilgilerini_analiz_et
 
 
@@ -11,7 +10,7 @@ def index(request):
     summary_data = None
     hisse_bilgisi = None
     selected_stock = None
-    google_gemini_degerlendirme=None
+    # google_gemini_degerlendirme=None
     form = StockForm(request.POST or None)
     add_stock_form = AddStockForm(request.POST or None)
 
@@ -83,7 +82,7 @@ def index(request):
             'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
             'operatingMargins': info.get('operatingMargins', 'N/A'),
         }
-        google_gemini_degerlendirme = hisse_bilgilerini_analiz_et(summary_data)
+        # google_gemini_degerlendirme = hisse_bilgilerini_analiz_et(summary_data)
 
 
 
@@ -94,5 +93,53 @@ def index(request):
         'summary_data': summary_data,
         'hisse_bilgisi': hisse_bilgisi,
         'selected_stock': selected_stock,
-        'google_gemini_degerlendirme': google_gemini_degerlendirme
+        # 'google_gemini_degerlendirme': google_gemini_degerlendirme
     })
+
+
+from django.http import JsonResponse
+
+def fetch_analysis(request):
+    selected_stock = None
+    stocks = Hisse.objects.all()
+
+    if stocks:
+        selected_stock = stocks.first().sembol
+
+    if selected_stock:
+        ticker = yf.Ticker(selected_stock)
+        info = ticker.info
+        summary_data = {
+            'name': info.get('longName', 'N/A'),
+            'currentPrice': info.get('currentPrice', 'N/A'),
+            'targetHighPrice': info.get('targetHighPrice', 'N/A'),
+            'targetLowPrice': info.get('targetLowPrice', 'N/A'),
+            'targetMeanPrice': info.get('targetMeanPrice', 'N/A'),
+            'targetMedianPrice': info.get('targetMedianPrice', 'N/A'),
+            'recommendationMean': info.get('recommendationMean', 'N/A'),
+            'recommendationKey': info.get('recommendationKey', 'N/A'),
+            'numberOfAnalystOpinions': info.get('numberOfAnalystOpinions', 'N/A'),
+            'totalCash': info.get('totalCash', 'N/A'),
+            'totalCashPerShare': info.get('totalCashPerShare', 'N/A'),
+            'ebitda': info.get('ebitda', 'N/A'),
+            'totalDebt': info.get('totalDebt', 'N/A'),
+            'quickRatio': info.get('quickRatio', 'N/A'),
+            'currentRatio': info.get('currentRatio', 'N/A'),
+            'totalRevenue': info.get('totalRevenue', 'N/A'),
+            'debtToEquity': info.get('debtToEquity', 'N/A'),
+            'revenuePerShare': info.get('revenuePerShare', 'N/A'),
+            'returnOnAssets': info.get('returnOnAssets', 'N/A'),
+            'returnOnEquity': info.get('returnOnEquity', 'N/A'),
+            'freeCashflow': info.get('freeCashflow', 'N/A'),
+            'operatingCashflow': info.get('operatingCashflow', 'N/A'),
+            'earningsGrowth': info.get('earningsGrowth', 'N/A'),
+            'revenueGrowth': info.get('revenueGrowth', 'N/A'),
+            'grossMargins': info.get('grossMargins', 'N/A'),
+            'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
+            'operatingMargins': info.get('operatingMargins', 'N/A'),
+        }
+        google_gemini_degerlendirme = hisse_bilgilerini_analiz_et(summary_data)
+        return JsonResponse({'analysis': google_gemini_degerlendirme})
+
+    return JsonResponse({'analysis': 'No stock selected'})
+
