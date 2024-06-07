@@ -146,3 +146,61 @@ def fetch_analysis(request):
     return JsonResponse({'analysis': 'No stock selected', 'stock_name': 'N/A'})
 
 
+
+
+def stock_table(request):
+    stocks = Hisse.objects.all()
+    stock_data = []
+
+    for stock in stocks:
+        ticker = yf.Ticker(stock.sembol)
+        info = ticker.info
+
+        # Temel analiz bilgilerini hesapla ve ekle
+        try:
+            current_ratio = info.get('currentAssets', 0) / info.get('currentLiabilities', 1)
+            quick_ratio = (info.get('currentAssets', 0) - info.get('inventory', 0)) / info.get('currentLiabilities', 1)
+            receivables_turnover = info.get('totalRevenue', 0) / info.get('receivables', 1)
+            inventory_turnover = info.get('costOfRevenue', 0) / info.get('inventory', 1)
+            asset_turnover = info.get('totalRevenue', 0) / info.get('totalAssets', 1)
+            debt_to_equity = info.get('totalDebt', 0) / info.get('totalEquity', 1)
+            interest_coverage = info.get('ebit', 0) / info.get('interestExpense', 1)
+            pe_ratio = info.get('currentPrice', 0) / info.get('trailingEps', 1)
+            pb_ratio = info.get('marketCap', 0) / info.get('bookValue', 1)
+            ev_ebitda = info.get('enterpriseValue', 0) / info.get('ebitda', 1)
+        except (ZeroDivisionError, TypeError):
+            current_ratio = quick_ratio = receivables_turnover = inventory_turnover = asset_turnover = debt_to_equity = interest_coverage = pe_ratio = pb_ratio = ev_ebitda = 0
+
+        recommendation_mean = info.get('recommendationMean', 3)
+        if recommendation_mean <= 2.0:
+            recommendation = 'Al'
+        elif recommendation_mean >= 3.0:
+            recommendation = 'Sat'
+        else:
+            recommendation = 'Tut'
+
+        stock_data.append({
+            'sembol': stock.sembol,
+            'isim': info.get('longName', 'N/A'),
+            'current_ratio': current_ratio,
+            'quick_ratio': quick_ratio,
+            'receivables_turnover': receivables_turnover,
+            'inventory_turnover': inventory_turnover,
+            'asset_turnover': asset_turnover,
+            'debt_to_equity': debt_to_equity,
+            'interest_coverage': interest_coverage,
+            'pe_ratio': pe_ratio,
+            'pb_ratio': pb_ratio,
+            'ev_ebitda': ev_ebitda,
+            'recommendation': recommendation
+        })
+
+    add_stock_form = AddStockForm()
+
+    return render(request, 'stock_table.html', {
+        'stock_data': stock_data,
+        'add_stock_form': add_stock_form
+    })
+
+
+

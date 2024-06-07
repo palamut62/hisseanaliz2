@@ -19,13 +19,7 @@ class StockForm(forms.Form):
                 self.fields['symbol'].initial = initial_symbol
             except KeyError:
                 pass
-        # else:
-        # Form ilk kez gönderildiğinde, ilk hisseyi seçili olarak ayarlayın
-        # if hisse_choices:
-        #     initial_symbol = hisse_choices[0][0]
-        #     self.fields['symbol'].initial = initial_symbol
 
-        # Bu kod bloğu kaldırıldı
 
 class AddStockForm(forms.ModelForm):
     class Meta:

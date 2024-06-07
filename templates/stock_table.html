@@ -1,0 +1,250 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hisse Tablosu</title>
+    <link rel="icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Inconsolata', monospace;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            font-size: 14px;
+        }
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .floating-menu {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        .floating-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+        }
+        .floating-menu a:hover {
+            background-color: #f2f2f2;
+        }
+        .buy {
+            background-color: #2A745D;
+            color: white;
+            text-align: center;
+        }
+        .sell {
+            background-color: #CE2825;
+            color: white;
+            text-align: center;
+        }
+        .hold {
+            background-color: #176084;
+            color: white;
+            text-align: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 15px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 300px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-content form label {
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .modal-content form input,
+        .modal-content form button {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+        .modal-content form button {
+            width: auto;
+            align-self: flex-end;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="title">Hisse Temel Analiz Tablosu</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Sembol</th>
+                <th>Cari Oran</th>
+                <th>Likidite Oranı</th>
+                <th>Alacak Devir Hızı</th>
+                <th>Stok Devir Hızı</th>
+                <th>Varlık Devir Hızı</th>
+                <th>Borç/Özkaynak Oranı</th>
+                <th>Faiz Karşılama Oranı</th>
+                <th>Fiyat/Kazanç Oranı (F/K)</th>
+                <th>Piyasa Değeri/Defter Değeri (PD/DD)</th>
+                <th>FD/EBITDA</th>
+                <th>Tavsiye</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stock_data %}
+                <tr>
+                    <td><a href="{% url 'index' %}?symbol={{ stock.sembol }}">{{ stock.sembol }}</a></td>
+                    <td>{{ stock.current_ratio|floatformat:2 }}</td>
+                    <td>{{ stock.quick_ratio|floatformat:2 }}</td>
+                    <td>{{ stock.receivables_turnover|floatformat:2 }}</td>
+                    <td>{{ stock.inventory_turnover|floatformat:2 }}</td>
+                    <td>{{ stock.asset_turnover|floatformat:2 }}</td>
+                    <td>{{ stock.debt_to_equity|floatformat:2 }}</td>
+                    <td>{{ stock.interest_coverage|floatformat:2 }}</td>
+                    <td>{{ stock.pe_ratio|floatformat:2 }}</td>
+                    <td>{{ stock.pb_ratio|floatformat:2 }}</td>
+                    <td>{{ stock.ev_ebitda|floatformat:2 }}</td>
+                    <td class="{% if stock.recommendation == 'Al' %}buy{% elif stock.recommendation == 'Sat' %}sell{% else %}hold{% endif %}">
+                        {{ stock.recommendation }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
+<div class="floating-menu" id="floatingMenu">
+    <a href="{% url 'index' %}"><i class="fas fa-home"></i> Anasayfa</a>
+    <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>
+</div>
+
+<!-- Modal Form -->
+<div id="modalForm" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h2>Hisse Ekle</h2>
+        <form method="post" action="{% url 'index' %}" id="addStockForm">
+            {% csrf_token %}
+            {{ add_stock_form.as_p }}
+            <button type="submit">Kaydet</button>
+        </form>
+    </div>
+</div>
+
+<!-- Font Awesome CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<script>
+    function toggleMenu() {
+        const menu = document.getElementById('floatingMenu');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    function openModal() {
+        document.getElementById('modalForm').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('modalForm').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const menu = document.getElementById('floatingMenu');
+        const modal = document.getElementById('modalForm');
+        if (!menu.contains(event.target) && event.target !== document.querySelector('.floating-button')) {
+            menu.style.display = 'none';
+        }
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

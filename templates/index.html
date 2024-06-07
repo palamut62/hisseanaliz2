@@ -347,7 +347,7 @@
 <button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
 <div class="floating-menu" id="floatingMenu">
     <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>
-    <a href="#"><i class="fas fa-table"></i> Hisse Tablosu</a>
+    <a href="{% url 'stock_table' %}"><i class="fas fa-table"></i> Hisse Tablosu</a>
     <a href="#" onclick="fetchAnalysis()"><i class="fas fa-chart-line"></i> Analiz Yap</a>
 </div>
 
@@ -368,7 +368,7 @@
 <div id="modalFormA" class="modal">
     <div class="modal-content-analyze" id="modalContentA">
         <span class="close-button" onclick="closeModalA()">&times;</span>
-        <h2 id="analysisTitle">Analiz Yap</h2>
+        <h2 id="analysisTitle">Analiz Yapılıyor...</h2>
         <div id="loading">Loading...</div>
         <div id="analysisResult" style="display:none;"></div>
     </div>
