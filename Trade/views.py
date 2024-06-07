@@ -3,12 +3,15 @@ from Trade.forms import StockForm, AddStockForm
 from Trade.models import Hisse
 import yfinance as yf
 
+from utils import hisse_bilgilerini_analiz_et
+
+
 def index(request):
     stocks = Hisse.objects.all()
     summary_data = None
     hisse_bilgisi = None
     selected_stock = None
-
+    google_gemini_degerlendirme=None
     form = StockForm(request.POST or None)
     add_stock_form = AddStockForm(request.POST or None)
 
@@ -80,6 +83,9 @@ def index(request):
             'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
             'operatingMargins': info.get('operatingMargins', 'N/A'),
         }
+        google_gemini_degerlendirme = hisse_bilgilerini_analiz_et(summary_data)
+
+
 
     return render(request, 'index.html', {
         'form': form,
@@ -87,5 +93,6 @@ def index(request):
         'stocks': stocks,
         'summary_data': summary_data,
         'hisse_bilgisi': hisse_bilgisi,
-        'selected_stock': selected_stock
+        'selected_stock': selected_stock,
+        'google_gemini_degerlendirme': google_gemini_degerlendirme
     })
