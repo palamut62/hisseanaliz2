@@ -99,6 +99,8 @@ def index(request):
 
 from django.http import JsonResponse
 
+from django.http import JsonResponse
+
 def fetch_analysis(request):
     selected_stock = None
     stocks = Hisse.objects.all()
@@ -139,7 +141,8 @@ def fetch_analysis(request):
             'operatingMargins': info.get('operatingMargins', 'N/A'),
         }
         google_gemini_degerlendirme = hisse_bilgilerini_analiz_et(summary_data)
-        return JsonResponse({'analysis': google_gemini_degerlendirme})
+        return JsonResponse({'analysis': google_gemini_degerlendirme, 'stock_name': summary_data['name']})
 
-    return JsonResponse({'analysis': 'No stock selected'})
+    return JsonResponse({'analysis': 'No stock selected', 'stock_name': 'N/A'})
+
 

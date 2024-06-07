@@ -343,6 +343,7 @@
     {% endif %}
 </div>
 
+
 <button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
 <div class="floating-menu" id="floatingMenu">
     <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>
@@ -367,7 +368,7 @@
 <div id="modalFormA" class="modal">
     <div class="modal-content-analyze" id="modalContentA">
         <span class="close-button" onclick="closeModalA()">&times;</span>
-        <h2>Analiz Yap</h2>
+        <h2 id="analysisTitle">Analiz Yap</h2>
         <div id="loading">Loading...</div>
         <div id="analysisResult" style="display:none;"></div>
     </div>
@@ -411,9 +412,11 @@
     function fetchAnalysis() {
         const loading = document.getElementById('loading');
         const analysisResult = document.getElementById('analysisResult');
+        const analysisTitle = document.getElementById('analysisTitle');
 
         loading.style.display = 'block';
         analysisResult.style.display = 'none';
+        analysisTitle.textContent = 'Analiz Yap';
 
         openModalA();
 
@@ -424,6 +427,7 @@
                 const response = JSON.parse(xhr.responseText);
                 const decodedAnalysis = decodeHTMLEntities(response.analysis);
                 analysisResult.innerHTML = decodedAnalysis.replace(/\n/g, '<br>');
+                analysisTitle.textContent = response.stock_name + ' Analizi';
                 loading.style.display = 'none';
                 analysisResult.style.display = 'block';
             }
