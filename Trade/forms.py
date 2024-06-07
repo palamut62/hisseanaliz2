@@ -5,9 +5,7 @@ import yfinance as yf
 
 class StockForm(forms.Form):
     symbol = forms.ChoiceField(label='Hisse Seç', required=True)
-    start_date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), label='Başlangıç Tarihi',
-                                 required=False)
-    end_date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), label='Bitiş Tarihi', required=False)
+
 
     def __init__(self, *args, **kwargs):
         super(StockForm, self).__init__(*args, **kwargs)

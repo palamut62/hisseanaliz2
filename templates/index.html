@@ -18,8 +18,9 @@
         }
 
         .container {
-            width: 80%;
+            width: 90%;
             margin: 0 auto;
+            margin-top:20px;
             padding: 20px;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -34,7 +35,7 @@
 
         .form-container div {
             display: flex;
-            flex-direction: column;
+            
         }
 
 
@@ -68,7 +69,7 @@
         }
 
         th, td {
-            padding: 12px;
+            padding: 10px;
             text-align: left;
 
         }
@@ -78,7 +79,7 @@
         }
 
         table tr, table td {
-            height: 7px; /* İstediğiniz yüksekliği buraya yazın */
+            height: 6px; /* İstediğiniz yüksekliği buraya yazın */
         }
 
         .floating-button {
@@ -197,28 +198,13 @@
             {{ form.symbol.label_tag }}
             {{ form.symbol }}
         </div>
-        <div>
-            {{ form.start_date.label_tag }}
-            {{ form.start_date }}
-        </div>
-        <div>
-            {{ form.end_date.label_tag }}
-            {{ form.end_date }}
-        </div>
-        <button type="submit">Getir</button>
+    
     </form>
     {% if hisse_bilgisi %}
         <div id="HisseBilgileri" class="tabcontent">
-            <h3>{{ summary_data.name|title }} Bilgileri</h3>
+            <h3>{{ summary_data.name|title }}</h3>
             <table class="hisse-bilgileri">
-    <tr>
-        <th>Bilgi</th>
-        <th>Değer</th>
-        <th>Bilgi</th>
-        <th>Değer</th>
-        <th>Bilgi</th>
-        <th>Değer</th>
-    </tr>
+
     <tr>
         <td>Sembol</td>
         <td>{{ hisse_bilgisi.sembol }}</td>
@@ -259,17 +245,10 @@
 
     {% if summary_data %}
         <div id="HisseTemelAnalizi" class="tabcontent">
-            <h3>{{ summary_data.name|title }} Temel Analiz</h3>
+            <h3>Temel Analiz</h3>
             <table class="hisse-bilgileri">
                 <thead>
-                <tr>
-                    <th>Bilgi</th>
-                    <th>Değer</th>
-                    <th>Bilgi</th>
-                    <th>Değer</th>
-                    <th>Bilgi</th>
-                    <th>Değer</th>
-                </tr>
+      
                 </thead>
                 <tbody>
                 <tr>
