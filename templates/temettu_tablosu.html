@@ -14,6 +14,7 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            position: relative; /* Floating button için gerekli */
         }
 
         .container {
@@ -51,58 +52,121 @@
             width: 100px;
             padding: 5px;
         }
+
+        .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-menu {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .floating-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .floating-menu a:hover {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Temettü Veren Hisseler</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Hisse Adı</th>
-                    <th>Temettü Değeri (1 Lot)</th>
-                    <th>Lot Sayısı</th>
-                    <th>Temettü Miktarı</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for veri in temettu_verileri %}
-                <tr>
-                    <td>{{ veri.isim }}</td>
-                    <td>{{ veri.temettu_degeri|floatformat:2 }}</td>
-                    <td><input type="number" value="{{ veri.lot_sayisi }}" min="1" oninput="updateTemettu(this, {{ veri.temettu_degeri }})"></td>
-                    <td class="temettu-miktari">{{ veri.temettu_degeri|floatformat:2 }}</td>
-                </tr>
-                {% endfor %}
-                <tr class="total-row">
-                    <td colspan="3">Toplam Temettü</td>
-                    <td id="toplam-temettu">0.00</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+<div class="container">
+    <h2>Temettü Veren Hisseler</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Hisse Adı</th>
+            <th>Temettü Değeri (1 Lot)</th>
+            <th>Lot Sayısı</th>
+            <th>Temettü Miktarı</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for veri in temettu_verileri %}
+            <tr>
+                <td>{{ veri.isim }}</td>
+                <td>{{ veri.temettu_degeri|floatformat:2 }}</td>
+                <td><input type="number" value="{{ veri.lot_sayisi }}" min="1"
+                           oninput="updateTemettu(this, {{ veri.temettu_degeri }})"></td>
+                <td class="temettu-miktari">{{ veri.temettu_degeri|floatformat:2 }}</td>
+            </tr>
+        {% endfor %}
+        <tr class="total-row">
+            <td colspan="3">Toplam Temettü</td>
+            <td id="toplam-temettu">0.00</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 
-    <script>
-        function updateTemettu(input, temettuDegeri) {
-            const lotSayisi = parseFloat(input.value);
-            const temettuMiktariCell = input.parentElement.nextElementSibling;
-            const temettuMiktari = (temettuDegeri * lotSayisi).toFixed(2);
+<button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
+<div class="floating-menu" id="floatingMenu">
+    <a href="{% url 'index' %}"><i class="fas fa-home"></i> Anasayfa</a>
+{#    <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>#}
+</div>
 
-            temettuMiktariCell.textContent = temettuMiktari;
-            updateToplamTemettu();
-        }
 
-        function updateToplamTemettu() {
-            let toplamTemettu = 0;
-            document.querySelectorAll('.temettu-miktari').forEach(cell => {
-                toplamTemettu += parseFloat(cell.textContent);
-            });
-            document.getElementById('toplam-temettu').textContent = toplamTemettu.toFixed(2);
-        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateToplamTemettu();
+<script>
+    function updateTemettu(input, temettuDegeri) {
+        const lotSayisi = parseFloat(input.value);
+        const temettuMiktariCell = input.parentElement.nextElementSibling;
+        const temettuMiktari = (temettuDegeri * lotSayisi).toFixed(2);
+
+        temettuMiktariCell.textContent = temettuMiktari;
+        updateToplamTemettu();
+    }
+
+    function updateToplamTemettu() {
+        let toplamTemettu = 0;
+        document.querySelectorAll('.temettu-miktari').forEach(cell => {
+            toplamTemettu += parseFloat(cell.textContent);
         });
-    </script>
+        document.getElementById('toplam-temettu').textContent = toplamTemettu.toFixed(2);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateToplamTemettu();
+    });
+
+    function toggleMenu() {
+        const menu = document.getElementById('floatingMenu');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+</script>
+
+<!-- Font Awesome CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </body>
 </html>
