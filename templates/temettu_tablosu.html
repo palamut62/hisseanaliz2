@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temettü Tablosu</title>
+    <link rel="icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Inconsolata', monospace;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 60%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 0 auto; /* Yatayda ortalamak için */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .total-row {
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Temettü Veren Hisseler</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Hisse Adı</th>
+                    <th>Temettü Değeri (1 Lot)</th>
+                    <th>Lot Sayısı</th>
+                    <th>Temettü Miktarı</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for veri in temettu_verileri %}
+                <tr>
+                    <td>{{ veri.isim }}</td>
+                    <td>{{ veri.temettu_degeri|floatformat:2 }}</td>
+                    <td><input type="number" value="{{ veri.lot_sayisi }}" min="1" oninput="updateTemettu(this, {{ veri.temettu_degeri }})"></td>
+                    <td class="temettu-miktari">{{ veri.temettu_degeri|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="3">Toplam Temettü</td>
+                    <td id="toplam-temettu">0.00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function updateTemettu(input, temettuDegeri) {
+            const lotSayisi = parseFloat(input.value);
+            const temettuMiktariCell = input.parentElement.nextElementSibling;
+            const temettuMiktari = (temettuDegeri * lotSayisi).toFixed(2);
+
+            temettuMiktariCell.textContent = temettuMiktari;
+            updateToplamTemettu();
+        }
+
+        function updateToplamTemettu() {
+            let toplamTemettu = 0;
+            document.querySelectorAll('.temettu-miktari').forEach(cell => {
+                toplamTemettu += parseFloat(cell.textContent);
+            });
+            document.getElementById('toplam-temettu').textContent = toplamTemettu.toFixed(2);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateToplamTemettu();
+        });
+    </script>
+</body>
+</html>

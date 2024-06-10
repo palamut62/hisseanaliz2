@@ -5,5 +5,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('fetch-analysis/', views.fetch_analysis, name='fetch_analysis'),
     path('stock-table/', views.stock_table, name='stock_table'),
-
+    path('temettu_tablosu/', views.temettu_tablosu, name='temet_table'),
 ]

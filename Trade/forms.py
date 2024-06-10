@@ -31,3 +31,7 @@ class AddStockForm(forms.ModelForm):
         }
 
 
+# forms.py
+
+class LotForm(forms.Form):
+    lot_sayisi = forms.IntegerField(min_value=1, label='Lot Sayısı')

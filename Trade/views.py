@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from Trade.forms import StockForm, AddStockForm
+from Trade.forms import StockForm, AddStockForm, LotForm
 from Trade.models import Hisse
 import yfinance as yf
 from utils import hisse_bilgilerini_analiz_et
@@ -96,8 +96,6 @@ def index(request):
         # 'google_gemini_degerlendirme': google_gemini_degerlendirme
     })
 
-
-from django.http import JsonResponse
 
 from django.http import JsonResponse
 
@@ -203,4 +201,27 @@ def stock_table(request):
     })
 
 
+def temettu_tablosu(request):
+    hisseler = Hisse.objects.all()
+    temettu_verileri = []
 
+    for hisse in hisseler:
+        ticker = yf.Ticker(hisse.sembol)
+        dividends = ticker.dividends
+
+        if not dividends.empty:
+            latest_dividend = dividends[-1]
+        else:
+            latest_dividend = 0
+
+        temettu_verileri.append({
+            'isim': hisse.isim,
+            'temettu_degeri': latest_dividend,
+            'lot_sayisi': 1,  # Varsayılan lot sayısı
+        })
+
+    context = {
+        'temettu_verileri': temettu_verileri,
+    }
+
+    return render(request, 'temettu_tablosu.html', context)

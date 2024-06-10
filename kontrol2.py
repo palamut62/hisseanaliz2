@@ -36,3 +36,6 @@ def stock_list():
     df = pd.DataFrame(data, columns=columns)
     df.to_csv("stocks.csv", index=False)
     print("Veriler başarıyla çekildi ve stocks.csv dosyasına kaydedildi.")
+
+
+
