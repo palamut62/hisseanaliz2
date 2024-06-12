@@ -41,7 +41,13 @@ class LotForm(forms.Form):
 
 
 
+from django import forms
+from .models import Settings  # Settings modelinizi içe aktarın
+
 class SettingsForm(forms.ModelForm):
+    key = forms.CharField(label="Key", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    value = forms.CharField(label="Value", widget=forms.TextInput(attrs={'class': 'form-control'}))
+
     class Meta:
         model = Settings
         fields = ['key', 'value']
