@@ -1,4 +1,5 @@
 from django import forms
+from .models import Settings
 from Trade.models import Hisse
 import yfinance as yf
 
@@ -36,3 +37,12 @@ class AddStockForm(forms.ModelForm):
 
 class LotForm(forms.Form):
     lot_sayisi = forms.IntegerField(min_value=1, label='Lot Sayısı')
+
+
+
+
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = Settings
+        fields = ['key', 'value']
+

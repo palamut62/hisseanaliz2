@@ -9,5 +9,6 @@ urlpatterns = [
     path('update_lot_adedi/', views.update_lot_adedi, name='update_lot_adedi'),
     path('mum_grafik/', views.mum_grafik, name='mum_grafik'),
     path('fetch_data/', views.fetch_data, name='fetch_data'),  # Yeni view fonksiyonu
+    path('settings/', views.settings_view, name='settings'),
 
 ]

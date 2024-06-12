@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
-from Trade.forms import StockForm, AddStockForm, LotForm
-from Trade.models import Hisse
+from Trade.forms import StockForm, AddStockForm, SettingsForm
+from Trade.models import Hisse, Settings
 import yfinance as yf
-from utils import hisse_bilgilerini_analiz_et
+from Trade.utils import hisse_bilgilerini_analiz_et
 
 
 def index(request):
@@ -84,7 +84,7 @@ def index(request):
             'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
             'operatingMargins': info.get('operatingMargins', 'N/A'),
         }
-        # google_gemini_degerlendirme = hisse_bilgilerini_analiz_et(summary_data)
+
 
 
 
@@ -367,3 +367,16 @@ def fetch_data(request):
         }
 
     return JsonResponse(data)
+
+
+def settings_view(request):
+
+    if request.method == 'POST':
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('settings')
+    else:
+        form = SettingsForm()
+        settings = Settings.objects.all()
+    return render(request, 'settings.html', {'form': form, 'settings': settings})
