@@ -96,77 +96,89 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Temettü Veren Hisseler</h2>
-    <table>
-        <thead>
-        <tr>
-            <th>Hisse Adı</th>
-            <th>Temettü Değeri (1 Lot)</th>
-            <th>Lot Sayısı</th>
-            <th>Temettü Miktarı</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for veri in temettu_verileri %}
-            <tr>
-                <td>{{ veri.isim }}</td>
-                <td>{{ veri.temettu_degeri|floatformat:2 }}</td>
-                <td><input type="number" value="{{ veri.lot_sayisi }}" min="1"
-                           oninput="updateTemettu(this, {{ veri.temettu_degeri }})"></td>
-                <td class="temettu-miktari">{{ veri.temettu_degeri|floatformat:2 }}</td>
-            </tr>
-        {% endfor %}
-        <tr class="total-row">
-            <td colspan="3">Toplam Temettü</td>
-            <td id="toplam-temettu">0.00</td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+    <div class="container">
+        <h2>Temettü Veren Hisseler</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Hisse Adı</th>
+                    <th>Temettü Değeri (1 Lot)</th>
+                    <th>Lot Sayısı</th>
+                    <th>Temettü Miktarı</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for veri in temettu_verileri %}
+                <tr>
+                    <td>{{ veri.isim }}</td>
+                    <td>{{ veri.temettu_degeri|floatformat:2 }}</td>
+                    <td><input type="number" value="{{ veri.lot_sayisi }}" min="1" oninput="updateTemettu(this, {{ veri.temettu_degeri }}, '{{ veri.isim }}')"></td>
+                    <td class="temettu-miktari">{{ veri.temettu_miktari|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="3">Toplam Temettü</td>
+                    <td id="toplam-temettu">{{ toplam_temettu|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-<button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
-<div class="floating-menu" id="floatingMenu">
-    <a href="{% url 'index' %}"><i class="fas fa-home"></i> Anasayfa</a>
-{#    <a href="#" onclick="openModal()"><i class="fas fa-plus-circle"></i> Hisse Ekle</a>#}
-</div>
+    <button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
+    <div class="floating-menu" id="floatingMenu">
+        <a href="{% url 'index' %}" ><i class="fas fa-plus-circle"></i> Anasayfa</a>
+        <a href="{% url 'stock_table' %}"><i class="fas fa-table"></i> Hisse Tablosu</a>
+     
+    </div>
 
+    <script>
+        function updateTemettu(input, temettuDegeri, hisseAdi) {
+            const lotSayisi = parseFloat(input.value);
+            const temettuMiktariCell = input.parentElement.nextElementSibling;
+            const temettuMiktari = (temettuDegeri * lotSayisi).toFixed(2);
 
+            temettuMiktariCell.textContent = temettuMiktari;
+            updateToplamTemettu();
 
-<script>
-    function updateTemettu(input, temettuDegeri) {
-        const lotSayisi = parseFloat(input.value);
-        const temettuMiktariCell = input.parentElement.nextElementSibling;
-        const temettuMiktari = (temettuDegeri * lotSayisi).toFixed(2);
-
-        temettuMiktariCell.textContent = temettuMiktari;
-        updateToplamTemettu();
-    }
-
-    function updateToplamTemettu() {
-        let toplamTemettu = 0;
-        document.querySelectorAll('.temettu-miktari').forEach(cell => {
-            toplamTemettu += parseFloat(cell.textContent);
-        });
-        document.getElementById('toplam-temettu').textContent = toplamTemettu.toFixed(2);
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        updateToplamTemettu();
-    });
-
-    function toggleMenu() {
-        const menu = document.getElementById('floatingMenu');
-        if (menu.style.display === 'none' || menu.style.display === '') {
-            menu.style.display = 'block';
-        } else {
-            menu.style.display = 'none';
+            // Ajax isteği ile lot adedini güncelle
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '{% url "update_lot_adedi" %}', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.send(`hisse_adi=${hisseAdi}&lot_adedi=${lotSayisi}`);
         }
-    }
 
-</script>
+        function updateToplamTemettu() {
+            let toplamTemettu = 0;
+            document.querySelectorAll('.temettu-miktari').forEach(cell => {
+                toplamTemettu += parseFloat(cell.textContent);
+            });
+            document.getElementById('toplam-temettu').textContent = toplamTemettu.toFixed(2);
+        }
 
-<!-- Font Awesome CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        document.addEventListener('DOMContentLoaded', function() {
+            updateToplamTemettu();
+        });
+
+        function toggleMenu() {
+            const menu = document.getElementById('floatingMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        function openModal() {
+            // Hisse ekleme modal'ını açan fonksiyon
+        }
+
+        function fetchAnalysis() {
+            // Analiz yapma fonksiyonunu çağıran kod
+        }
+    </script>
+
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </body>
 </html>

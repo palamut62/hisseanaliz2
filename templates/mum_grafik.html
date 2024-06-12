@@ -1,0 +1,424 @@
+<!-- templates/mum_grafik.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ sembol }} Mum Grafik</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inconsolata', monospace;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 80%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+        }
+
+        .period-select,
+        .bollinger-settings,
+        .rsi-settings,
+        .macd-settings {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{{ sembol }} Mum Grafik</h2>
+        <div class="period-select">
+            <label for="period">Zaman Periyodu Seçin:</label>
+            <select id="period" name="period">
+                <option value="1h">Son 1 Saat</option>
+                <option value="4h">Son 4 Saat</option>
+                <option value="8h">Son 8 Saat</option>
+                <option value="1d">1 Gün</option>
+                <option value="5d">5 Gün</option>
+                <option value="1mo">1 Ay</option>
+                <option value="3mo">3 Ay</option>
+                <option value="6mo">6 Ay</option>
+                <option value="1y" selected>1 Yıl</option>
+                <option value="2y">2 Yıl</option>
+                <option value="5y">5 Yıl</option>
+                <option value="10y">10 Yıl</option>
+                <option value="ytd">YTD</option>
+                <option value="max">Max</option>
+            </select>
+        </div>
+        <div class="bollinger-settings">
+            <label for="window">Bollinger Band Pencere:</label>
+            <input type="number" id="window" name="window" value="{{ window }}" min="1" max="100">
+            <label for="std_dev">Standart Sapma:</label>
+            <input type="number" id="std_dev" name="std_dev" value="{{ std_dev }}" min="1" max="10">
+            <button onclick="updateBollingerBands()">Güncelle</button>
+        </div>
+        <div class="rsi-settings">
+            <label for="rsi_window">RSI Pencere:</label>
+            <input type="number" id="rsi_window" name="rsi_window" value="{{ rsi_window }}" min="1" max="100">
+            <button onclick="updateRSI()">Güncelle RSI</button>
+        </div>
+        <div class="macd-settings">
+            <label for="short_window">MACD Kısa Pencere:</label>
+            <input type="number" id="short_window" name="short_window" value="{{ short_window }}" min="1" max="50">
+            <label for="long_window">MACD Uzun Pencere:</label>
+            <input type="number" id="long_window" name="long_window" value="{{ long_window }}" min="1" max="100">
+            <label for="signal_window">MACD Sinyal Penceresi:</label>
+            <input type="number" id="signal_window" name="signal_window" value="{{ signal_window }}" min="1" max="50">
+            <button onclick="updateMACD()">Güncelle MACD</button>
+        </div>
+        <div id="graph"></div>
+        <div id="rsi_graph"></div>
+        <div id="macd_graph"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const data = {{ data|safe }};
+            const sembol = '{{ sembol }}';
+            const periodSelect = document.getElementById('period');
+            const windowInput = document.getElementById('window');
+            const stdDevInput = document.getElementById('std_dev');
+            const rsiWindowInput = document.getElementById('rsi_window');
+            const shortWindowInput = document.getElementById('short_window');
+            const longWindowInput = document.getElementById('long_window');
+            const signalWindowInput = document.getElementById('signal_window');
+
+            function fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `{% url 'fetch_data' %}?sembol=${sembol}&period=${period}&window=${window}&std_dev=${std_dev}&rsi_window=${rsi_window}&short_window=${short_window}&long_window=${long_window}&signal_window=${signal_window}`, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        updateGraph(response);
+                        updateRSIGraph(response);
+                        updateMACDGraph(response);
+                    }
+                };
+                xhr.send();
+            }
+
+            function updateGraph(data) {
+                const candlestickTrace = {
+                    x: data.dates,
+                    close: data.close,
+                    high: data.high,
+                    low: data.low,
+                    open: data.open,
+                    increasing: {line: {color: 'green'}},
+                    decreasing: {line: {color: 'red'}},
+                    type: 'candlestick',
+                    xaxis: 'x',
+                    yaxis: 'y',
+                    hoverinfo: 'x+y+text',
+                    text: data.dates.map((date, index) => 
+                        `Tarih: ${date}<br>Open: ${data.open[index]}<br>High: ${data.high[index]}<br>Low: ${data.low[index]}<br>Close: ${data.close[index]}`
+                    )
+                };
+
+                const bollingerHighTrace = {
+                    x: data.dates,
+                    y: data.bollinger_high,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgba(255, 0, 0, 0.5)',
+                        width: 1,
+                    },
+                    name: 'Bollinger High',
+                    hoverinfo: 'none'
+                };
+
+                const bollingerMiddleTrace = {
+                    x: data.dates,
+                    y: data.bollinger_middle,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgba(0, 0, 255, 0.5)',
+                        width: 1,
+                    },
+                    name: 'Bollinger Middle',
+                    hoverinfo: 'none'
+                };
+
+                const bollingerLowTrace = {
+                    x: data.dates,
+                    y: data.bollinger_low,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgba(255, 0, 0, 0.5)',
+                        width: 1,
+                    },
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(255, 0, 0, 0.1)',
+                    name: 'Bollinger Low',
+                    hoverinfo: 'none'
+                };
+
+                const layout = {
+                    dragmode: 'zoom',
+                    margin: {
+                        r: 10,
+                        t: 25,
+                        b: 40,
+                        l: 60
+                    },
+                    showlegend: true,
+                    xaxis: {
+                        rangeslider: {
+                            visible: false
+                        }
+                    },
+                    yaxis: {
+                        title: 'Fiyat'
+                    },
+                    yaxis2: {
+                        title: 'Volume',
+                        overlaying: 'y',
+                        side: 'right'
+                    }
+                };
+
+                Plotly.newPlot('graph', [candlestickTrace, bollingerHighTrace, bollingerMiddleTrace, bollingerLowTrace], layout);
+            }
+
+            function updateRSIGraph(data) {
+                const rsiTrace = {
+                    x: data.dates,
+                    y: data.rsi,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgba(0, 128, 0, 0.5)',
+                        width: 1,
+                    },
+                    name: 'RSI',
+                    hoverinfo: 'x+y'
+                };
+
+                const layout = {
+                    dragmode: 'zoom',
+                    margin: {
+                        r: 10,
+                        t: 25,
+                        b: 40,
+                        l: 60
+                    },
+                    showlegend: true,
+                    xaxis: {
+                        rangeslider: {
+                            visible: false
+                        }
+                    },
+                    yaxis: {
+                        title: 'RSI',
+                        range: [0, 100]
+                    },
+                    shapes: [
+                        {
+                            type: 'line',
+                            x0: data.dates[0],
+                            x1: data.dates[data.dates.length - 1],
+                            y0: 30,
+                            y1: 30,
+                            line: {
+                                color: 'red',
+                                width: 1,
+                                dash: 'dash'
+                            }
+                        },
+                        {
+                            type: 'line',
+                            x0: data.dates[0],
+                            x1: data.dates[data.dates.length - 1],
+                            y0: 70,
+                            y1: 70,
+                            line: {
+                                color: 'red',
+                                width: 1,
+                                dash: 'dash'
+                            }
+                        }
+                    ]
+                };
+
+                Plotly.newPlot('rsi_graph', [rsiTrace], layout);
+            }
+
+            function updateMACDGraph(data) {
+                const macdTrace = {
+                    x: data.dates,
+                    y: data.macd,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgba(0, 0, 255, 0.5)',
+                        width: 1,
+                    },
+                    name: 'MACD',
+                    hoverinfo: 'x+y'
+                };
+
+                const signalLineTrace = {
+                    x: data.dates,
+                    y: data.signal_line,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgba(255, 0, 0, 0.5)',
+                        width: 1,
+                    },
+                    name: 'Signal Line',
+                    hoverinfo: 'x+y'
+                };
+
+                const layout = {
+                    dragmode: 'zoom',
+                    margin: {
+                        r: 10,
+                        t: 25,
+                        b: 40,
+                        l: 60
+                    },
+                    showlegend: true,
+                    xaxis: {
+                        rangeslider: {
+                            visible: false
+                        }
+                    },
+                    yaxis: {
+                        title: 'MACD'
+                    }
+                };
+
+                Plotly.newPlot('macd_graph', [macdTrace, signalLineTrace], layout);
+            }
+
+            periodSelect.addEventListener('change', function() {
+                const period = this.value;
+                const window = windowInput.value;
+                const std_dev = stdDevInput.value;
+                const rsi_window = rsiWindowInput.value;
+                const short_window = shortWindowInput.value;
+                const long_window = longWindowInput.value;
+                const signal_window = signalWindowInput.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            windowInput.addEventListener('change', function() {
+                const period = periodSelect.value;
+                const window = this.value;
+                const std_dev = stdDevInput.value;
+                const rsi_window = rsiWindowInput.value;
+                const short_window = shortWindowInput.value;
+                const long_window = longWindowInput.value;
+                const signal_window = signalWindowInput.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            stdDevInput.addEventListener('change', function() {
+                const period = periodSelect.value;
+                const window = windowInput.value;
+                const std_dev = this.value;
+                const rsi_window = rsiWindowInput.value;
+                const short_window = shortWindowInput.value;
+                const long_window = longWindowInput.value;
+                const signal_window = signalWindowInput.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            rsiWindowInput.addEventListener('change', function() {
+                const period = periodSelect.value;
+                const window = windowInput.value;
+                const std_dev = stdDevInput.value;
+                const rsi_window = this.value;
+                const short_window = shortWindowInput.value;
+                const long_window = longWindowInput.value;
+                const signal_window = signalWindowInput.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            shortWindowInput.addEventListener('change', function() {
+                const period = periodSelect.value;
+                const window = windowInput.value;
+                const std_dev = stdDevInput.value;
+                const rsi_window = rsiWindowInput.value;
+                const short_window = this.value;
+                const long_window = longWindowInput.value;
+                const signal_window = signalWindowInput.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            longWindowInput.addEventListener('change', function() {
+                const period = periodSelect.value;
+                const window = windowInput.value;
+                const std_dev = stdDevInput.value;
+                const rsi_window = rsiWindowInput.value;
+                const short_window = shortWindowInput.value;
+                const long_window = this.value;
+                const signal_window = signalWindowInput.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            signalWindowInput.addEventListener('change', function() {
+                const period = periodSelect.value;
+                const window = windowInput.value;
+                const std_dev = stdDevInput.value;
+                const rsi_window = rsiWindowInput.value;
+                const short_window = shortWindowInput.value;
+                const long_window = longWindowInput.value;
+                const signal_window = this.value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            });
+
+            function updateBollingerBands() {
+                const period = document.getElementById('period').value;
+                const window = document.getElementById('window').value;
+                const std_dev = document.getElementById('std_dev').value;
+                const rsi_window = document.getElementById('rsi_window').value;
+                const short_window = document.getElementById('short_window').value;
+                const long_window = document.getElementById('long_window').value;
+                const signal_window = document.getElementById('signal_window').value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            }
+
+            function updateRSI() {
+                const period = document.getElementById('period').value;
+                const window = document.getElementById('window').value;
+                const std_dev = document.getElementById('std_dev').value;
+                const rsi_window = document.getElementById('rsi_window').value;
+                const short_window = document.getElementById('short_window').value;
+                const long_window = document.getElementById('long_window').value;
+                const signal_window = document.getElementById('signal_window').value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            }
+
+            function updateMACD() {
+                const period = document.getElementById('period').value;
+                const window = document.getElementById('window').value;
+                const std_dev = document.getElementById('std_dev').value;
+                const rsi_window = document.getElementById('rsi_window').value;
+                const short_window = document.getElementById('short_window').value;
+                const long_window = document.getElementById('long_window').value;
+                const signal_window = document.getElementById('signal_window').value;
+                fetchAndUpdateGraph(period, window, std_dev, rsi_window, short_window, long_window, signal_window);
+            }
+
+            // İlk grafik oluşturma
+            updateGraph(data);
+            updateRSIGraph(data);
+            updateMACDGraph(data);
+        });
+    </script>
+</body>
+</html>

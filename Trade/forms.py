@@ -24,10 +24,11 @@ class StockForm(forms.Form):
 class AddStockForm(forms.ModelForm):
     class Meta:
         model = Hisse
-        fields = ['sembol', 'isim']
+        fields = ['sembol', 'isim','lot_adedi']
         labels = {
             'sembol': 'Sembol',
             'isim': 'İsim',
+            'lot_adedi': 'lot_adedi',
         }
 
 

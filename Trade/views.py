@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+
 from Trade.forms import StockForm, AddStockForm, LotForm
 from Trade.models import Hisse
 import yfinance as yf
@@ -205,6 +207,8 @@ def temettu_tablosu(request):
     hisseler = Hisse.objects.all()
     temettu_verileri = []
 
+    toplam_temettu = 0
+
     for hisse in hisseler:
         ticker = yf.Ticker(hisse.sembol)
         dividends = ticker.dividends
@@ -214,14 +218,152 @@ def temettu_tablosu(request):
         else:
             latest_dividend = 0
 
+        lot_sayisi = hisse.lot_adedi
+        temettu_miktari = latest_dividend * lot_sayisi  # Kullanıcı tarafından girilen lot sayısı ile hesapla
+        toplam_temettu += temettu_miktari
+
         temettu_verileri.append({
             'isim': hisse.isim,
             'temettu_degeri': latest_dividend,
-            'lot_sayisi': 1,  # Varsayılan lot sayısı
+            'lot_sayisi': lot_sayisi,
+            'temettu_miktari': temettu_miktari
         })
 
     context = {
         'temettu_verileri': temettu_verileri,
+        'toplam_temettu': toplam_temettu,
     }
 
     return render(request, 'temettu_tablosu.html', context)
+
+
+
+@csrf_exempt
+def update_lot_adedi(request):
+    if request.method == 'POST':
+        hisse_adi = request.POST.get('hisse_adi')
+        lot_adedi = request.POST.get('lot_adedi')
+        try:
+            hisse = Hisse.objects.get(isim=hisse_adi)
+            hisse.lot_adedi = int(lot_adedi)
+            hisse.save()
+            return JsonResponse({'status': 'success'})
+        except Hisse.DoesNotExist:
+            return JsonResponse({'status': 'fail', 'message': 'Hisse bulunamadı'})
+    return JsonResponse({'status': 'fail', 'message': 'Geçersiz istek'})
+
+
+
+def calculate_bollinger_bands(data, window, std_dev):
+    rolling_mean = data['Close'].rolling(window).mean()
+    rolling_std = data['Close'].rolling(window).std()
+    data['Bollinger Middle'] = rolling_mean
+    data['Bollinger High'] = rolling_mean + (rolling_std * std_dev)
+    data['Bollinger Low'] = rolling_mean - (rolling_std * std_dev)
+    return data
+
+def calculate_rsi(data, window):
+    delta = data['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    data['RSI'] = rsi
+    return data
+
+def calculate_macd(data, short_window, long_window, signal_window):
+    data['EMA12'] = data['Close'].ewm(span=short_window, adjust=False).mean()
+    data['EMA26'] = data['Close'].ewm(span=long_window, adjust=False).mean()
+    data['MACD'] = data['EMA12'] - data['EMA26']
+    data['Signal Line'] = data['MACD'].ewm(span=signal_window, adjust=False).mean()
+    return data
+
+def mum_grafik(request):
+    sembol = request.GET.get('sembol', None)
+    period = request.GET.get('period', '1y')  # Varsayılan 1 yıl
+    interval = '1d'  # Varsayılan günlük
+    window = int(request.GET.get('window', 20))
+    std_dev = int(request.GET.get('std_dev', 2))
+    rsi_window = int(request.GET.get('rsi_window', 14))
+    short_window = int(request.GET.get('short_window', 12))
+    long_window = int(request.GET.get('long_window', 26))
+    signal_window = int(request.GET.get('signal_window', 9))
+
+    if period in ['1d', '5d']:
+        interval = '1h'  # 1 günlük veya 5 günlük seçildiğinde saatlik
+    elif period in ['1h', '4h', '8h']:
+        interval = period  # 1 saat, 4 saat, 8 saat
+
+    data = None
+
+    if sembol:
+        ticker = yf.Ticker(sembol)
+        hist = ticker.history(period=period, interval=interval)  # Seçilen zaman periyoduna ve intervale göre veriyi çek
+        hist = calculate_bollinger_bands(hist, window, std_dev)
+        hist = calculate_rsi(hist, rsi_window)
+        hist = calculate_macd(hist, short_window, long_window, signal_window)
+
+        # NaN değerleri kaldırın
+        hist = hist.dropna()
+
+        data = {
+            'dates': hist.index.strftime('%Y-%m-%d %H:%M:%S').tolist(),
+            'open': hist['Open'].tolist(),
+            'high': hist['High'].tolist(),
+            'low': hist['Low'].tolist(),
+            'close': hist['Close'].tolist(),
+            'volume': hist['Volume'].tolist(),
+            'bollinger_middle': hist['Bollinger Middle'].tolist(),
+            'bollinger_high': hist['Bollinger High'].tolist(),
+            'bollinger_low': hist['Bollinger Low'].tolist(),
+            'rsi': hist['RSI'].tolist(),
+            'macd': hist['MACD'].tolist(),
+            'signal_line': hist['Signal Line'].tolist()
+        }
+
+    return render(request, 'mum_grafik.html', {'data': data, 'sembol': sembol, 'period': period, 'window': window, 'std_dev': std_dev, 'rsi_window': rsi_window, 'short_window': short_window, 'long_window': long_window, 'signal_window': signal_window})
+
+def fetch_data(request):
+    sembol = request.GET.get('sembol', None)
+    period = request.GET.get('period', '1y')  # Varsayılan 1 yıl
+    interval = '1d'  # Varsayılan günlük
+    window = int(request.GET.get('window', 20))
+    std_dev = int(request.GET.get('std_dev', 2))
+    rsi_window = int(request.GET.get('rsi_window', 14))
+    short_window = int(request.GET.get('short_window', 12))
+    long_window = int(request.GET.get('long_window', 26))
+    signal_window = int(request.GET.get('signal_window', 9))
+
+    if period in ['1d', '5d']:
+        interval = '1h'  # 1 günlük veya 5 günlük seçildiğinde saatlik
+    elif period in ['1h', '4h', '8h']:
+        interval = period  # 1 saat, 4 saat, 8 saat
+
+    data = None
+
+    if sembol:
+        ticker = yf.Ticker(sembol)
+        hist = ticker.history(period=period, interval=interval)  # Seçilen zaman periyoduna ve intervale göre veriyi çek
+        hist = calculate_bollinger_bands(hist, window, std_dev)
+        hist = calculate_rsi(hist, rsi_window)
+        hist = calculate_macd(hist, short_window, long_window, signal_window)
+
+        # NaN değerleri kaldırın
+        hist = hist.dropna()
+
+        data = {
+            'dates': hist.index.strftime('%Y-%m-%d %H:%M:%S').tolist(),
+            'open': hist['Open'].tolist(),
+            'high': hist['High'].tolist(),
+            'low': hist['Low'].tolist(),
+            'close': hist['Close'].tolist(),
+            'volume': hist['Volume'].tolist(),
+            'bollinger_middle': hist['Bollinger Middle'].tolist(),
+            'bollinger_high': hist['Bollinger High'].tolist(),
+            'bollinger_low': hist['Bollinger Low'].tolist(),
+            'rsi': hist['RSI'].tolist(),
+            'macd': hist['MACD'].tolist(),
+            'signal_line': hist['Signal Line'].tolist()
+        }
+
+    return JsonResponse(data)
