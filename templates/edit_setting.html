@@ -4,53 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
-    <link rel="icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
+    <title>Edit Setting</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
     <style>
         body {
             font-family: 'Inconsolata', monospace;
-            background-color: #f4f4f4;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            position: relative; /* Floating button için gerekli */
+            padding: 0;
+            background-color: #f4f4f4;
+            font-size: 14px;
         }
 
         .container {
-            width: 60%;
-            background-color: #fff;
+            width: 50%;
+            margin: 0 auto;
+            margin-top: 20px;
             padding: 20px;
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 0 auto; /* Yatayda ortalamak için */
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
+        .form-container {
+            display: flex;
+            flex-direction: column;
         }
 
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
-        th, td {
+        .form-container input,
+        .form-container button {
             padding: 10px;
-            text-align: left;
+            margin-bottom: 10px;
+            width: 97%;
         }
 
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .total-row {
-            font-weight: bold;
-        }
-
-        input[type="number"] {
-            width: 100px;
-            padding: 5px;
+        .form-container button {
+            width: auto;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
 
         .floating-button {
@@ -94,52 +85,38 @@
             background-color: #f2f2f2;
         }
     </style>
-
-
 </head>
 <body>
 <div class="container">
-    <h2>Settings</h2>
-    <form method="post">
+    <h2>Edit Setting</h2>
+    <form method="post" class="form-container">
         {% csrf_token %}
-        {{ form.key.label_tag }}
-        {{ form.key }}
-        {{ form.value.label_tag }}
-        {{ form.value }}
+        {{ form.as_p }}
         <button type="submit">Save</button>
     </form>
-    <h3>Existing Settings</h3>
-    <table>
-        <tr>
-            <th>Key</th>
-            <th>Value</th>
-            <th></th>
-        </tr>
-        {% for setting in settings %}
-            <tr>
-                <td>{{ setting.key }}</td>
-                <td>********************</td>
-                <td><a href="{% url 'edit_setting' setting.pk %}">Düzenle</a></td>
-            </tr>
-        {% endfor %}
-    </table>
 </div>
-<!-- Floating Menu -->
+
 <button class="floating-button" onclick="toggleMenu()"><i class="fas fa-list-ul"></i></button>
 <div class="floating-menu" id="floatingMenu">
     <a href="{% url 'index' %}"><i class="fas fa-home"></i> Anasayfa</a>
-    <a href="{% url 'stock_table' %}"><i class="fas fa-table"></i> Hisse Tablosu</a>
+    <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Ayarlar</a>
 </div>
 
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
 <script>
     function toggleMenu() {
         const menu = document.getElementById('floatingMenu');
         if (menu.style.display === 'none' || menu.style.display === '') {
             menu.style.display = 'block';
         } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    window.onclick = function(event) {
+        const menu = document.getElementById('floatingMenu');
+        const button = document.querySelector('.floating-button');
+        if (event.target !== menu && event.target !== button && !menu.contains(event.target)) {
             menu.style.display = 'none';
         }
     }

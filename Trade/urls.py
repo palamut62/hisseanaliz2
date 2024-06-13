@@ -10,5 +10,6 @@ urlpatterns = [
     path('mum_grafik/', views.mum_grafik, name='mum_grafik'),
     path('fetch_data/', views.fetch_data, name='fetch_data'),  # Yeni view fonksiyonu
     path('settings/', views.settings_view, name='settings'),
+    path('settings/edit/<int:pk>/', views.edit_setting, name='edit_setting'),
 
 ]

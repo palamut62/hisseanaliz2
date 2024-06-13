@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from Trade.forms import StockForm, AddStockForm, SettingsForm
@@ -370,7 +370,6 @@ def fetch_data(request):
 
 
 def settings_view(request):
-
     if request.method == 'POST':
         form = SettingsForm(request.POST)
         if form.is_valid():
@@ -378,5 +377,16 @@ def settings_view(request):
             return redirect('settings')
     else:
         form = SettingsForm()
-        settings = Settings.objects.all()
+    settings = Settings.objects.all()
     return render(request, 'settings.html', {'form': form, 'settings': settings})
+
+def edit_setting(request, pk):
+    setting = get_object_or_404(Settings, pk=pk)
+    if request.method == 'POST':
+        form = SettingsForm(request.POST, instance=setting)
+        if form.is_valid():
+            form.save()
+            return redirect('settings')
+    else:
+        form = SettingsForm(instance=setting)
+    return render(request, 'edit_setting.html', {'form': form})
