@@ -215,8 +215,14 @@
         <div>
             {{ form.symbol.label_tag }}
             {{ form.symbol }}
+
         </div>
+        {% if selected_stock_file %}
+        <a href="{% url 'download_file' filename=selected_stock_file %}">Download {{ selected_stock_file }}</a>
+    {% endif %}
     </form>
+    
+
 
     {% if hisse_bilgisi %}
         <div id="HisseBilgileri" class="tabcontent">
@@ -351,8 +357,8 @@
     <a href="{% url 'stock_table' %}"><i class="fas fa-table"></i> Hisse Tablosu</a>
     <a href="#" onclick="fetchAnalysis()"><i class="fas fa-chart-line"></i> Analiz Yap</a>
     <a href="{% url 'temet_table' %}"><i class="fas fa-coins"></i> Temettü Tablosu</a>
-    <a href="{% url 'mum_grafik' %}?sembol={{ selected_stock }}"><i class="fas fa-chart-bar"></i> Mum Grafik</a>
-    <a href="{% url 'settings' %}" ><i class="fas fa-cog"></i></i> Ayarlar</a>
+    <a href="{% url 'mum_grafik' %}?sembol={{ selected_stock }}"><i class="fas fa-chart-bar"></i> Grafik</a>
+    <a href="{% url 'settings' %}"><i class="fas fa-cog"></i></i> Ayarlar</a>
 
 </div>
 

@@ -1,4 +1,7 @@
 from django.urls import path
+
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -12,4 +15,6 @@ urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
     path('settings/edit/<int:pk>/', views.edit_setting, name='edit_setting'),
 
+
 ]
+

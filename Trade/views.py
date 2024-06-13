@@ -1,6 +1,9 @@
+import os
+
+import pandas as pd
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-
+from django.conf import settings
 from Trade.forms import StockForm, AddStockForm, SettingsForm
 from Trade.models import Hisse, Settings
 import yfinance as yf
@@ -12,7 +15,6 @@ def index(request):
     summary_data = None
     hisse_bilgisi = None
     selected_stock = None
-    # google_gemini_degerlendirme=None
     form = StockForm(request.POST or None)
     add_stock_form = AddStockForm(request.POST or None)
 
@@ -28,65 +30,84 @@ def index(request):
         if stocks:
             selected_stock = stocks.first().sembol
 
+    selected_stock_file = None
+
     if selected_stock:
         ticker = yf.Ticker(selected_stock)
         info = ticker.info
+
+        # Hisse bilgisi
         hisse_bilgisi = {
-            'sembol': selected_stock,
-            'isim': info.get('longName', 'N/A'),
-            'sektor': info.get('sector', 'N/A'),
-            'fiyat': info.get('currentPrice', 'N/A'),
-            'piyasa_degeri': info.get('marketCap', 'N/A'),
-            'fk_orani': info.get('forwardPE', 'N/A'),
-            'eps': info.get('trailingEps', 'N/A'),
-            'ozsermaye': info.get('bookValue', 'N/A'),
-            'net_gelir': info.get('netIncomeToCommon', 'N/A'),
-            'toplam_varliklar': info.get('totalAssets', 'N/A'),
-            'toplam_borclar': info.get('totalDebt', 'N/A'),
-            'address1': info.get('address1', 'N/A'),
-            'address2': info.get('address2', 'N/A'),
-            'city': info.get('city', 'N/A'),
-            'zip': info.get('zip', 'N/A'),
-            'country': info.get('country', 'N/A'),
-            'phone': info.get('phone', 'N/A'),
-            'fax': info.get('fax', 'N/A'),
-            'website': info.get('website', 'N/A'),
-            'industry': info.get('industry', 'N/A'),
-            'fullTimeEmployees': info.get('fullTimeEmployees', 'N/A'),
-            'longBusinessSummary': info.get('longBusinessSummary', 'N/A'),
+            'Sembol': selected_stock,
+            'İsim': info.get('longName', 'N/A'),
+            'Sektör': info.get('sector', 'N/A'),
+            'Fiyat': info.get('currentPrice', 'N/A'),
+            'Piyasa Değeri': info.get('marketCap', 'N/A'),
+            'F/K Oranı': info.get('forwardPE', 'N/A'),
+            'EPS': info.get('trailingEps', 'N/A'),
+            'Özsermaye': info.get('bookValue', 'N/A'),
+            'Net Gelir': info.get('netIncomeToCommon', 'N/A'),
+            'Toplam Varlıklar': info.get('totalAssets', 'N/A'),
+            'Toplam Borçlar': info.get('totalDebt', 'N/A'),
+            'Adres1': info.get('address1', 'N/A'),
+            'Adres2': info.get('address2', 'N/A'),
+            'Şehir': info.get('city', 'N/A'),
+            'Posta Kodu': info.get('zip', 'N/A'),
+            'Ülke': info.get('country', 'N/A'),
+            'Telefon': info.get('phone', 'N/A'),
+            'Faks': info.get('fax', 'N/A'),
+            'Web Sitesi': info.get('website', 'N/A'),
+            'Endüstri': info.get('industry', 'N/A'),
+            'Tam Zamanlı Çalışanlar': info.get('fullTimeEmployees', 'N/A'),
+            'İş Özeti': info.get('longBusinessSummary', 'N/A'),
         }
+
+        # Summary verileri
         summary_data = {
-            'name': info.get('longName', 'N/A'),
-            'currentPrice': info.get('currentPrice', 'N/A'),
-            'targetHighPrice': info.get('targetHighPrice', 'N/A'),
-            'targetLowPrice': info.get('targetLowPrice', 'N/A'),
-            'targetMeanPrice': info.get('targetMeanPrice', 'N/A'),
-            'targetMedianPrice': info.get('targetMedianPrice', 'N/A'),
-            'recommendationMean': info.get('recommendationMean', 'N/A'),
-            'recommendationKey': info.get('recommendationKey', 'N/A'),
-            'numberOfAnalystOpinions': info.get('numberOfAnalystOpinions', 'N/A'),
-            'totalCash': info.get('totalCash', 'N/A'),
-            'totalCashPerShare': info.get('totalCashPerShare', 'N/A'),
-            'ebitda': info.get('ebitda', 'N/A'),
-            'totalDebt': info.get('totalDebt', 'N/A'),
-            'quickRatio': info.get('quickRatio', 'N/A'),
-            'currentRatio': info.get('currentRatio', 'N/A'),
-            'totalRevenue': info.get('totalRevenue', 'N/A'),
-            'debtToEquity': info.get('debtToEquity', 'N/A'),
-            'revenuePerShare': info.get('revenuePerShare', 'N/A'),
-            'returnOnAssets': info.get('returnOnAssets', 'N/A'),
-            'returnOnEquity': info.get('returnOnEquity', 'N/A'),
-            'freeCashflow': info.get('freeCashflow', 'N/A'),
-            'operatingCashflow': info.get('operatingCashflow', 'N/A'),
-            'earningsGrowth': info.get('earningsGrowth', 'N/A'),
-            'revenueGrowth': info.get('revenueGrowth', 'N/A'),
-            'grossMargins': info.get('grossMargins', 'N/A'),
-            'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
-            'operatingMargins': info.get('operatingMargins', 'N/A'),
+            'Adı': info.get('longName', 'N/A'),
+            'Fiyat': info.get('currentPrice', 'N/A'),
+            'Hedef Yüksek Fiyat': info.get('targetHighPrice', 'N/A'),
+            'Hedef Düşük Fiyat': info.get('targetLowPrice', 'N/A'),
+            'Hedef Ortalama Fiyat': info.get('targetMeanPrice', 'N/A'),
+            'Hedef Medyan Fiyat': info.get('targetMedianPrice', 'N/A'),
+            'Tavsiye Ortalaması': info.get('recommendationMean', 'N/A'),
+            'Tavsiye Anahtarı': info.get('recommendationKey', 'N/A'),
+            'Analist Görüş Sayısı': info.get('numberOfAnalystOpinions', 'N/A'),
+            'Toplam Nakit': info.get('totalCash', 'N/A'),
+            'Hisse Başı Toplam Nakit': info.get('totalCashPerShare', 'N/A'),
+            'EBITDA': info.get('ebitda', 'N/A'),
+            'Toplam Borç': info.get('totalDebt', 'N/A'),
+            'Hızlı Oran': info.get('quickRatio', 'N/A'),
+            'Cari Oran': info.get('currentRatio', 'N/A'),
+            'Toplam Gelir': info.get('totalRevenue', 'N/A'),
+            'Borç / Özsermaye': info.get('debtToEquity', 'N/A'),
+            'Hisse Başı Gelir': info.get('revenuePerShare', 'N/A'),
+            'Varlık Getirisi': info.get('returnOnAssets', 'N/A'),
+            'Özsermaye Getirisi': info.get('returnOnEquity', 'N/A'),
+            'Serbest Nakit Akışı': info.get('freeCashflow', 'N/A'),
+            'Operasyon Nakit Akışı': info.get('operatingCashflow', 'N/A'),
+            'Kazanç Büyümesi': info.get('earningsGrowth', 'N/A'),
+            'Gelir Büyümesi': info.get('revenueGrowth', 'N/A'),
+            'Brüt Marj': info.get('grossMargins', 'N/A'),
+            'EBITDA Marjı': info.get('ebitdaMargins', 'N/A'),
+            'Operasyon Marjı': info.get('operatingMargins', 'N/A'),
         }
 
+        # Verileri pandas DataFrame'e dönüştürme ve dikey hale getirme
+        hisse_bilgisi_df = pd.DataFrame(list(hisse_bilgisi.items()), columns=['Başlık', 'Değer'])
+        summary_data_df = pd.DataFrame(list(summary_data.items()), columns=['Başlık', 'Değer'])
 
+        # Kaydetme klasörünü kontrol et ve oluştur
+        save_folder = os.path.join(settings.MEDIA_ROOT, 'stock_excel_files')
+        os.makedirs(save_folder, exist_ok=True)
+        save_path = os.path.join(save_folder, f'{selected_stock}.xlsx')
 
+        # Verileri Excel dosyasına yazma
+        with pd.ExcelWriter(save_path, engine='openpyxl') as writer:
+            hisse_bilgisi_df.to_excel(writer, sheet_name='Hisse Bilgisi', index=False)
+            summary_data_df.to_excel(writer, sheet_name='Summary Data', index=False)
+
+        selected_stock_file = selected_stock + '.xlsx'
 
     return render(request, 'index.html', {
         'form': form,
@@ -95,11 +116,13 @@ def index(request):
         'summary_data': summary_data,
         'hisse_bilgisi': hisse_bilgisi,
         'selected_stock': selected_stock,
-        # 'google_gemini_degerlendirme': google_gemini_degerlendirme
+        'selected_stock_file': selected_stock_file
     })
 
 
-from django.http import JsonResponse
+
+from django.http import JsonResponse, HttpResponse, Http404
+
 
 def fetch_analysis(request):
     selected_stock = None
@@ -144,8 +167,6 @@ def fetch_analysis(request):
         return JsonResponse({'analysis': google_gemini_degerlendirme, 'stock_name': summary_data['name']})
 
     return JsonResponse({'analysis': 'No stock selected', 'stock_name': 'N/A'})
-
-
 
 
 def stock_table(request):
@@ -237,7 +258,6 @@ def temettu_tablosu(request):
     return render(request, 'temettu_tablosu.html', context)
 
 
-
 @csrf_exempt
 def update_lot_adedi(request):
     if request.method == 'POST':
@@ -253,7 +273,6 @@ def update_lot_adedi(request):
     return JsonResponse({'status': 'fail', 'message': 'Geçersiz istek'})
 
 
-
 def calculate_bollinger_bands(data, window, std_dev):
     rolling_mean = data['Close'].rolling(window).mean()
     rolling_std = data['Close'].rolling(window).std()
@@ -261,6 +280,7 @@ def calculate_bollinger_bands(data, window, std_dev):
     data['Bollinger High'] = rolling_mean + (rolling_std * std_dev)
     data['Bollinger Low'] = rolling_mean - (rolling_std * std_dev)
     return data
+
 
 def calculate_rsi(data, window):
     delta = data['Close'].diff()
@@ -271,12 +291,14 @@ def calculate_rsi(data, window):
     data['RSI'] = rsi
     return data
 
+
 def calculate_macd(data, short_window, long_window, signal_window):
     data['EMA12'] = data['Close'].ewm(span=short_window, adjust=False).mean()
     data['EMA26'] = data['Close'].ewm(span=long_window, adjust=False).mean()
     data['MACD'] = data['EMA12'] - data['EMA26']
     data['Signal Line'] = data['MACD'].ewm(span=signal_window, adjust=False).mean()
     return data
+
 
 def mum_grafik(request):
     sembol = request.GET.get('sembol', None)
@@ -321,7 +343,11 @@ def mum_grafik(request):
             'signal_line': hist['Signal Line'].tolist()
         }
 
-    return render(request, 'mum_grafik.html', {'data': data, 'sembol': sembol, 'period': period, 'window': window, 'std_dev': std_dev, 'rsi_window': rsi_window, 'short_window': short_window, 'long_window': long_window, 'signal_window': signal_window})
+    return render(request, 'mum_grafik.html',
+                  {'data': data, 'sembol': sembol, 'period': period, 'window': window, 'std_dev': std_dev,
+                   'rsi_window': rsi_window, 'short_window': short_window, 'long_window': long_window,
+                   'signal_window': signal_window})
+
 
 def fetch_data(request):
     sembol = request.GET.get('sembol', None)
@@ -380,6 +406,7 @@ def settings_view(request):
     settings = Settings.objects.all()
     return render(request, 'settings.html', {'form': form, 'settings': settings})
 
+
 def edit_setting(request, pk):
     setting = get_object_or_404(Settings, pk=pk)
     if request.method == 'POST':
@@ -390,3 +417,13 @@ def edit_setting(request, pk):
     else:
         form = SettingsForm(instance=setting)
     return render(request, 'edit_setting.html', {'form': form})
+
+
+def download_file(request, filename):
+    file_path = os.path.join(settings.MEDIA_ROOT, 'stock_excel_files', filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
