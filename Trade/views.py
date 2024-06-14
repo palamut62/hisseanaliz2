@@ -1,8 +1,5 @@
-import logging
 import os
 from types import SimpleNamespace
-
-import pandas as pd
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -10,6 +7,7 @@ from Trade.forms import StockForm, AddStockForm, SettingsForm
 from Trade.models import Hisse, Settings
 import yfinance as yf
 from Trade.utils import hisse_bilgilerini_analiz_et
+from bilanco import hisse_cek
 
 
 def index(request):
@@ -35,7 +33,7 @@ def index(request):
     selected_stock_file = None
 
     if selected_stock:
-        ticker = yf.Ticker(selected_stock)
+        ticker = yf.Ticker(selected_stock+ '.IS')
         info = ticker.info
 
         # Hisse bilgisi
@@ -67,7 +65,7 @@ def index(request):
         hisse_bilgisi = SimpleNamespace(**hisse_bilgisi_dict)
 
         # Summary verileri
-        summary_data_dict = {
+        summary_data = {
             'name': info.get('longName', 'N/A'),
             'currentPrice': info.get('currentPrice', 'N/A'),
             'targetHighPrice': info.get('targetHighPrice', 'N/A'),
@@ -96,24 +94,18 @@ def index(request):
             'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
             'operatingMargins': info.get('operatingMargins', 'N/A'),
         }
+        semboller=[]
+        for sembol in stocks:
+            semboller.append(sembol.sembol)
 
-        summary_data = SimpleNamespace(**summary_data_dict)
 
-        # Verileri pandas DataFrame'e dönüştürme ve dikey hale getirme
-        hisse_bilgisi_df = pd.DataFrame(list(hisse_bilgisi_dict.items()), columns=['Başlık', 'Değer'])
-        summary_data_df = pd.DataFrame(list(summary_data_dict.items()), columns=['Başlık', 'Değer'])
-
-        # Kaydetme klasörünü kontrol et ve oluştur
-        save_folder = os.path.join(settings.MEDIA_ROOT, 'stock_excel_files')
-        os.makedirs(save_folder, exist_ok=True)
-        save_path = os.path.join(save_folder, f'{selected_stock}.xlsx')
-
-        # Verileri Excel dosyasına yazma
-        with pd.ExcelWriter(save_path, engine='openpyxl') as writer:
-            hisse_bilgisi_df.to_excel(writer, sheet_name='Hisse Bilgisi', index=False)
-            summary_data_df.to_excel(writer, sheet_name='Summary Data', index=False)
+        hisse_cek(semboller)
 
         selected_stock_file = selected_stock + '.xlsx'
+
+
+
+
 
     return render(request, 'index.html', {
         'form': form,
@@ -123,6 +115,7 @@ def index(request):
         'hisse_bilgisi': hisse_bilgisi,
         'selected_stock': selected_stock,
         'selected_stock_file': selected_stock_file
+
     })
 
 
