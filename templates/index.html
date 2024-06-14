@@ -1,13 +1,12 @@
-{% load humanize %}
 {% load static %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ summary_data.name|title }}</title>
+    <title>{% if summary_data %}{{ summary_data.name|title }}{% else %}Hisse Bilgileri{% endif %}</title>
     <link rel="icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
-
     <style>
         body {
             font-family: 'Inconsolata', monospace;
@@ -16,7 +15,6 @@
             background-color: #f4f4f4;
             font-size: 14px;
         }
-
         .container {
             width: 90%;
             margin: 0 auto;
@@ -25,18 +23,15 @@
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
         .form-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
         }
-
         .form-container div {
             display: flex;
         }
-
         .form-container select,
         .form-container input,
         .form-container button {
@@ -44,7 +39,6 @@
             margin-right: 10px;
             width: 100%;
         }
-
         .form-container button {
             width: auto;
             background-color: #ff6600;
@@ -52,30 +46,24 @@
             border: none;
             cursor: pointer;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-
         table, th, td {
             border: 1px solid #ddd;
         }
-
         th, td {
             padding: 10px;
             text-align: left;
         }
-
         th {
             background-color: #f2f2f2;
         }
-
         table tr, table td {
             height: 6px;
         }
-
         .floating-button {
             position: fixed;
             bottom: 20px;
@@ -93,7 +81,6 @@
             align-items: center;
             justify-content: center;
         }
-
         .floating-menu {
             display: none;
             position: fixed;
@@ -105,18 +92,15 @@
             overflow: hidden;
             z-index: 1000;
         }
-
         .floating-menu a {
             display: block;
             padding: 10px 20px;
             color: #333;
             text-decoration: none;
         }
-
         .floating-menu a:hover {
             background-color: #f2f2f2;
         }
-
         .modal {
             display: none;
             position: fixed;
@@ -128,7 +112,6 @@
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.4);
         }
-
         .modal-content {
             background-color: #fff;
             margin: 10% auto;
@@ -139,31 +122,26 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
         }
-
         .close-button {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
-
         .close-button:hover,
         .close-button:focus {
             color: black;
             text-decoration: none;
             cursor: pointer;
         }
-
         .modal-content form {
             display: flex;
             flex-direction: column;
         }
-
         .modal-content form label {
             margin-top: 10px;
             margin-bottom: 5px;
         }
-
         .modal-content form input,
         .modal-content form button {
             padding: 10px;
@@ -172,7 +150,6 @@
             box-sizing: border-box;
             border-radius: 5px;
         }
-
         .modal-content form button {
             width: auto;
             align-self: flex-end;
@@ -181,7 +158,6 @@
             border: none;
             cursor: pointer;
         }
-
         /* Different styles for the second modal */
         .modal-content-analyze {
             background-color: #e3f2fd;
@@ -193,15 +169,12 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             border-radius: 15px;
         }
-
         .modal-content-analyze h2 {
             color: #1e88e5;
         }
-
         .modal-content-analyze .close-button {
             color: #1565c0;
         }
-
         .modal-content-analyze .close-button:hover,
         .modal-content-analyze .close-button:focus {
             color: #0d47a1;
@@ -215,14 +188,11 @@
         <div>
             {{ form.symbol.label_tag }}
             {{ form.symbol }}
-
         </div>
         {% if selected_stock_file %}
         <a href="{% url 'download_file' filename=selected_stock_file %}">Download {{ selected_stock_file }}</a>
-    {% endif %}
+        {% endif %}
     </form>
-    
-
 
     {% if hisse_bilgisi %}
         <div id="HisseBilgileri" class="tabcontent">
@@ -358,8 +328,7 @@
     <a href="#" onclick="fetchAnalysis()"><i class="fas fa-chart-line"></i> Analiz Yap</a>
     <a href="{% url 'temet_table' %}"><i class="fas fa-coins"></i> Temettü Tablosu</a>
     <a href="{% url 'mum_grafik' %}?sembol={{ selected_stock }}"><i class="fas fa-chart-bar"></i> Grafik</a>
-    <a href="{% url 'settings' %}"><i class="fas fa-cog"></i></i> Ayarlar</a>
-
+    <a href="{% url 'settings' %}"><i class="fas fa-cog"></i> Ayarlar</a>
 </div>
 
 <!-- Modal Form -->

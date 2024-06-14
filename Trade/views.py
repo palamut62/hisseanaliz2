@@ -1,4 +1,6 @@
+import logging
 import os
+from types import SimpleNamespace
 
 import pandas as pd
 from django.shortcuts import render, redirect, get_object_or_404
@@ -37,65 +39,69 @@ def index(request):
         info = ticker.info
 
         # Hisse bilgisi
-        hisse_bilgisi = {
-            'Sembol': selected_stock,
-            'İsim': info.get('longName', 'N/A'),
-            'Sektör': info.get('sector', 'N/A'),
-            'Fiyat': info.get('currentPrice', 'N/A'),
-            'Piyasa Değeri': info.get('marketCap', 'N/A'),
-            'F/K Oranı': info.get('forwardPE', 'N/A'),
-            'EPS': info.get('trailingEps', 'N/A'),
-            'Özsermaye': info.get('bookValue', 'N/A'),
-            'Net Gelir': info.get('netIncomeToCommon', 'N/A'),
-            'Toplam Varlıklar': info.get('totalAssets', 'N/A'),
-            'Toplam Borçlar': info.get('totalDebt', 'N/A'),
-            'Adres1': info.get('address1', 'N/A'),
-            'Adres2': info.get('address2', 'N/A'),
-            'Şehir': info.get('city', 'N/A'),
-            'Posta Kodu': info.get('zip', 'N/A'),
-            'Ülke': info.get('country', 'N/A'),
-            'Telefon': info.get('phone', 'N/A'),
-            'Faks': info.get('fax', 'N/A'),
-            'Web Sitesi': info.get('website', 'N/A'),
-            'Endüstri': info.get('industry', 'N/A'),
-            'Tam Zamanlı Çalışanlar': info.get('fullTimeEmployees', 'N/A'),
-            'İş Özeti': info.get('longBusinessSummary', 'N/A'),
+        hisse_bilgisi_dict = {
+            'sembol': selected_stock,
+            'isim': info.get('longName', 'N/A'),
+            'sektor': info.get('sector', 'N/A'),
+            'fiyat': info.get('currentPrice', 'N/A'),
+            'piyasa_degeri': info.get('marketCap', 'N/A'),
+            'fk_orani': info.get('forwardPE', 'N/A'),
+            'eps': info.get('trailingEps', 'N/A'),
+            'ozsermaye': info.get('bookValue', 'N/A'),
+            'net_gelir': info.get('netIncomeToCommon', 'N/A'),
+            'toplam_varliklar': info.get('totalAssets', 'N/A'),
+            'toplam_borclar': info.get('totalDebt', 'N/A'),
+            'adres1': info.get('address1', 'N/A'),
+            'adres2': info.get('address2', 'N/A'),
+            'sehir': info.get('city', 'N/A'),
+            'posta_kodu': info.get('zip', 'N/A'),
+            'ulke': info.get('country', 'N/A'),
+            'telefon': info.get('phone', 'N/A'),
+            'faks': info.get('fax', 'N/A'),
+            'web_sitesi': info.get('website', 'N/A'),
+            'endustri': info.get('industry', 'N/A'),
+            'fullTimeEmployees': info.get('fullTimeEmployees', 'N/A'),
+            'is_ozeti': info.get('longBusinessSummary', 'N/A'),
         }
+
+        hisse_bilgisi = SimpleNamespace(**hisse_bilgisi_dict)
 
         # Summary verileri
-        summary_data = {
-            'Adı': info.get('longName', 'N/A'),
-            'Fiyat': info.get('currentPrice', 'N/A'),
-            'Hedef Yüksek Fiyat': info.get('targetHighPrice', 'N/A'),
-            'Hedef Düşük Fiyat': info.get('targetLowPrice', 'N/A'),
-            'Hedef Ortalama Fiyat': info.get('targetMeanPrice', 'N/A'),
-            'Hedef Medyan Fiyat': info.get('targetMedianPrice', 'N/A'),
-            'Tavsiye Ortalaması': info.get('recommendationMean', 'N/A'),
-            'Tavsiye Anahtarı': info.get('recommendationKey', 'N/A'),
-            'Analist Görüş Sayısı': info.get('numberOfAnalystOpinions', 'N/A'),
-            'Toplam Nakit': info.get('totalCash', 'N/A'),
-            'Hisse Başı Toplam Nakit': info.get('totalCashPerShare', 'N/A'),
-            'EBITDA': info.get('ebitda', 'N/A'),
-            'Toplam Borç': info.get('totalDebt', 'N/A'),
-            'Hızlı Oran': info.get('quickRatio', 'N/A'),
-            'Cari Oran': info.get('currentRatio', 'N/A'),
-            'Toplam Gelir': info.get('totalRevenue', 'N/A'),
-            'Borç / Özsermaye': info.get('debtToEquity', 'N/A'),
-            'Hisse Başı Gelir': info.get('revenuePerShare', 'N/A'),
-            'Varlık Getirisi': info.get('returnOnAssets', 'N/A'),
-            'Özsermaye Getirisi': info.get('returnOnEquity', 'N/A'),
-            'Serbest Nakit Akışı': info.get('freeCashflow', 'N/A'),
-            'Operasyon Nakit Akışı': info.get('operatingCashflow', 'N/A'),
-            'Kazanç Büyümesi': info.get('earningsGrowth', 'N/A'),
-            'Gelir Büyümesi': info.get('revenueGrowth', 'N/A'),
-            'Brüt Marj': info.get('grossMargins', 'N/A'),
-            'EBITDA Marjı': info.get('ebitdaMargins', 'N/A'),
-            'Operasyon Marjı': info.get('operatingMargins', 'N/A'),
+        summary_data_dict = {
+            'name': info.get('longName', 'N/A'),
+            'currentPrice': info.get('currentPrice', 'N/A'),
+            'targetHighPrice': info.get('targetHighPrice', 'N/A'),
+            'targetLowPrice': info.get('targetLowPrice', 'N/A'),
+            'targetMeanPrice': info.get('targetMeanPrice', 'N/A'),
+            'targetMedianPrice': info.get('targetMedianPrice', 'N/A'),
+            'recommendationMean': info.get('recommendationMean', 'N/A'),
+            'recommendationKey': info.get('recommendationKey', 'N/A'),
+            'numberOfAnalystOpinions': info.get('numberOfAnalystOpinions', 'N/A'),
+            'totalCash': info.get('totalCash', 'N/A'),
+            'totalCashPerShare': info.get('totalCashPerShare', 'N/A'),
+            'ebitda': info.get('ebitda', 'N/A'),
+            'totalDebt': info.get('totalDebt', 'N/A'),
+            'quickRatio': info.get('quickRatio', 'N/A'),
+            'currentRatio': info.get('currentRatio', 'N/A'),
+            'totalRevenue': info.get('totalRevenue', 'N/A'),
+            'debtToEquity': info.get('debtToEquity', 'N/A'),
+            'revenuePerShare': info.get('revenuePerShare', 'N/A'),
+            'returnOnAssets': info.get('returnOnAssets', 'N/A'),
+            'returnOnEquity': info.get('returnOnEquity', 'N/A'),
+            'freeCashflow': info.get('freeCashflow', 'N/A'),
+            'operatingCashflow': info.get('operatingCashflow', 'N/A'),
+            'earningsGrowth': info.get('earningsGrowth', 'N/A'),
+            'revenueGrowth': info.get('revenueGrowth', 'N/A'),
+            'grossMargins': info.get('grossMargins', 'N/A'),
+            'ebitdaMargins': info.get('ebitdaMargins', 'N/A'),
+            'operatingMargins': info.get('operatingMargins', 'N/A'),
         }
 
+        summary_data = SimpleNamespace(**summary_data_dict)
+
         # Verileri pandas DataFrame'e dönüştürme ve dikey hale getirme
-        hisse_bilgisi_df = pd.DataFrame(list(hisse_bilgisi.items()), columns=['Başlık', 'Değer'])
-        summary_data_df = pd.DataFrame(list(summary_data.items()), columns=['Başlık', 'Değer'])
+        hisse_bilgisi_df = pd.DataFrame(list(hisse_bilgisi_dict.items()), columns=['Başlık', 'Değer'])
+        summary_data_df = pd.DataFrame(list(summary_data_dict.items()), columns=['Başlık', 'Değer'])
 
         # Kaydetme klasörünü kontrol et ve oluştur
         save_folder = os.path.join(settings.MEDIA_ROOT, 'stock_excel_files')
